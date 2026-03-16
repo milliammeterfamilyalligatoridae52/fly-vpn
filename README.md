@@ -142,6 +142,30 @@ Installer flow:
 
 ---
 
+## Fly VPN vs fly-tailscale-exit
+
+[patte/fly-tailscale-exit](https://github.com/patte/fly-tailscale-exit) (1.6k ⭐) pioneered the idea of running Tailscale exit nodes on Fly.io. Fly VPN builds on the same concept but wraps it into a **ready-to-use product** instead of a DevOps guide.
+
+| | fly-tailscale-exit | Fly VPN |
+|---|---|---|
+| Steps to start | **13** manual steps | **1** (`bash install.sh`) |
+| GitHub org required | ✅ | ❌ |
+| Fly org setup | Manual (`fly orgs create`) | Automatic |
+| Deployment model | `fly deploy` (Dockerfile + fly.toml) | `fly m run` (no deploy, no repo) |
+| Exit node approval | Manual in Tailscale admin | ACL auto-approve out of the box |
+| Connect to exit node | `tailscale up --use-exit-node=…` | Automatic on launch |
+| Switch region | `fly scale count` + manual cleanup | Pick from dropdown → Launch |
+| Cleanup on stop | ❌ Machine keeps running (💸) | ✅ App + machine destroyed |
+| UI | None (CLI only) | Textual TUI with hotkeys |
+| Cost safety net | None | Watchdog (cron/launchd) |
+| Headscale support | ❌ | ✅ (`TS_LOGIN_SERVER` env) |
+| Instant device cleanup | ❌ | ✅ (Tailscale API key) |
+| Desktop integration | None | macOS .app / GNOME menu |
+
+> **Credit where due** — fly-tailscale-exit proved the idea works. Fly VPN just makes it one-click.
+
+---
+
 ## Tailscale setup (required once)
 
 ### Auth key (required)
