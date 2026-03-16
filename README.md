@@ -34,6 +34,60 @@ No always-on VM. No manual cleanup. No billing anxiety.
 
 ---
 
+## Why Fly.io?
+
+| Criteria | Fly.io | AWS EC2 / Lightsail | DigitalOcean | Hetzner |
+|----------|--------|---------------------|--------------|---------|
+| Cold start | **~3 s** (Machines API) | 30–60 s | 30–55 s | 10–30 s |
+| Per-second billing | ✅ | ❌ (per-hour) | ❌ (per-hour) | ❌ (per-hour) |
+| Regions | 35+ worldwide | 30+ | 15 | 5 |
+| Destroy on stop | native (Machines) | manual / API | manual / API | manual / API |
+| Free tier | 3 shared VMs, 160 GB out | 750 h/mo (t2.micro) | — | — |
+
+**Bottom line:** Fly Machines are **pay-per-second**, start in seconds, and auto-destroy — ideal for ephemeral workloads. No idle costs when the VPN is off.
+
+### Cost estimate
+
+| Usage | Fly.io cost |
+|-------|-------------|
+| 1 h/day, 30 days (shared-cpu-1x, 256 MB) | **~$0.50–1.00/mo** |
+| 4 h/day, 30 days | ~$2–4/mo |
+| Always-on equivalent (730 h) | ~$3.50/mo |
+
+> Compare: a \$5/mo DigitalOcean droplet runs 24/7 whether you need it or not. Fly VPN runs **only when you click Launch**.
+
+---
+
+## Why Tailscale?
+
+| Criteria | Tailscale | OpenVPN | WireGuard (raw) | Cloudflare WARP |
+|----------|-----------|---------|-----------------|-----------------|
+| Setup complexity | Zero-config mesh | Certs + config files | Key exchange + routing | Managed (no self-host) |
+| NAT traversal | ✅ built-in (DERP) | Manual / STUN | Manual | N/A |
+| Exit node support | ✅ native | Manual iptables | Manual iptables | ❌ |
+| Auto-approve nodes | ✅ via ACL tags | ❌ | ❌ | N/A |
+| Ephemeral nodes | ✅ (auto-expire keys) | ❌ | ❌ | N/A |
+| Protocol | WireGuard underneath | TLS / UDP | WireGuard | WireGuard (modified) |
+
+**Bottom line:** Tailscale gives us **WireGuard performance** with zero manual key management. Ephemeral auth keys + ACL auto-approval = nodes that appear, serve traffic, and vanish — no cleanup.
+
+---
+
+## Approaches compared
+
+| Approach | Spin-up | Monthly cost (casual) | Cleanup | Multi-region |
+|----------|---------|----------------------|---------|-------------|
+| **Fly VPN (this project)** | ~5 s | **<$1** | automatic | ✅ 35+ regions |
+| Commercial VPN (Mullvad, PIA…) | instant | $5–10 | N/A | ✅ but shared IPs |
+| Self-hosted WireGuard on VPS | 30–60 s | $5+ (always-on) | manual | one region per VPS |
+| SSH SOCKS proxy | instant | $5+ (always-on VPS) | manual | one region per VPS |
+| Outline VPN (Jigsaw) | 30–60 s | $5+ (always-on) | manual | one region per VPS |
+| Cloud Functions + proxy | varies | pay-per-request | automatic | ✅ but complex |
+
+**Fly VPN wins when you need:** your own IP (not shared), multi-region on demand, zero idle cost, and fully automated lifecycle.
+
+---
+
 ## Why teams love it
 
 - 🌍 **Choose region instantly** (EU/US/APAC and more)
