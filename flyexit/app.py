@@ -46,10 +46,10 @@ class FlyVPNApp(App[None]):
     CSS = APP_CSS
 
     BINDINGS: ClassVar[list[Binding]] = [
-        Binding("q", "quit", "Quit"),
-        Binding("l", "launch", "Launch"),
-        Binding("s", "stop", "Stop"),
-        Binding("t", "toggle_dark", "Theme"),
+        Binding("q", "quit", "Quit", priority=True),
+        Binding("l", "launch", "Launch", priority=True),
+        Binding("s", "stop", "Stop", priority=True),
+        Binding("t", "toggle_dark", "Theme", priority=True),
     ]
 
     def __init__(self) -> None:
