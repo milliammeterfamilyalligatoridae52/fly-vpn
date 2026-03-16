@@ -1,6 +1,6 @@
 # 🛡️ Fly VPN — disposable global VPN in seconds
 
-**One API key. One command. Private exit node in 35+ regions.**
+**One API key. One command. Private exit node in 18 regions.**
 
 Fly VPN spins up an **ephemeral Tailscale exit node** on [Fly.io](https://fly.io), auto-configures your tailnet, routes your traffic, and **destroys everything** the moment you press Stop.
 
@@ -120,7 +120,7 @@ No auth key to create. No ACL to edit. No manual steps.
 |----------|--------|---------------------|--------------|----------|
 | Cold start | **~3 s** (Machines API) | 30–60 s | 30–55 s | 10–30 s |
 | Per-second billing | ✅ | ❌ (per-hour) | ❌ (per-hour) | ❌ (per-hour) |
-| Regions | 35+ worldwide | 30+ | 15 | 5 |
+| Regions | 18 worldwide | 30+ | 15 | 5 |
 | Destroy on stop | native (Machines) | manual / API | manual / API | manual / API |
 | Free tier | 3 shared VMs, 160 GB out | 750 h/mo (t2.micro) | — | — |
 
@@ -157,7 +157,7 @@ No auth key to create. No ACL to edit. No manual steps.
 
 | Approach | Spin-up | Monthly cost (casual) | Cleanup | Multi-region |
 |----------|---------|----------------------|---------|-------------|
-| **Fly VPN (this project)** | ~5 s | **<$1** | automatic | ✅ 35+ regions |
+| **Fly VPN (this project)** | ~5 s | **<$1** | automatic | ✅ 18 regions |
 | Commercial VPN (Mullvad, PIA…) | instant | $5–10 | N/A | ✅ but shared IPs |
 | Self-hosted WireGuard on VPS | 30–60 s | $5+ (always-on) | manual | one region per VPS |
 | SSH SOCKS proxy | instant | $5+ (always-on VPS) | manual | one region per VPS |
@@ -418,6 +418,18 @@ Design principle: **UI-only app layer + enum-based session orchestration + thin 
 ```bash
 bash install.sh uninstall
 ```
+
+---
+
+## Roadmap
+
+- [ ] **Drop `flyctl` dependency** — replace all CLI calls with the [Fly.io Machines API](https://fly.io/docs/machines/api/) directly, removing the only heavy external binary requirement
+- [ ] **Windows support** — make installer, Tailscale integration, and routing work on Windows (PowerShell installer, Windows-native `tailscale.exe` path detection)
+- [ ] **Linux app package** — `.deb` / `.rpm` / AUR package for one-line install on Linux
+- [ ] **Session history & cost tracking** — persist session logs (region, duration, estimated cost) to a local SQLite DB and show a history screen in the TUI
+- [ ] **Multiple simultaneous nodes** — spin up nodes in several regions at once and switch between them without teardown
+- [ ] **Custom machine size picker** — let the user choose Fly Machine CPU/RAM tier (e.g. `shared-cpu-1x` vs `performance-2x`) from the TUI
+- [ ] **Config profiles** — save named profiles (preferred region, machine size, etc.) and switch between them quickly
 
 ---
 
