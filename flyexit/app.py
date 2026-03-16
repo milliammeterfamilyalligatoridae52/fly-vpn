@@ -56,8 +56,12 @@ class FlyVPNApp(App[None]):
         super().__init__()
         self._cfg = config.load()
         self._auth_key: str = os.environ.get("TAILSCALE_AUTHKEY", "")
-        self._session = VPNSession()
-        self._busy = False
+        self._session = VPNSession(
+            ts_api_key=os.environ.get("TAILSCALE_API_KEY", ""),
+        )
+        self._launching = False
+        self._stopping = False
+        self._quitting = False
 
         atexit.register(self._session.emergency_cleanup)
 
@@ -121,6 +125,12 @@ class FlyVPNApp(App[None]):
         self._do_stop()
 
     def action_quit(self) -> None:
+        if self._quitting:
+            return
+        self._quitting = True
+        if self._session.is_active:
+            self._set_status("⏳ Cleaning up before exit…")
+            self._log("[dim]🧹 Cleaning up before exit…[/]")
         self._teardown_with_log()
         super().action_quit()
 
@@ -133,12 +143,15 @@ class FlyVPNApp(App[None]):
         self._do_stop()
 
     def _do_launch(self) -> None:
-        if self._busy:
+        if self._launching:
             return
         if self._session.is_active:
             self._log("[dim]Already running[/]")
             return
-        self._busy = True
+        self._launching = True
+        self._set_buttons(launching=True)
+        self._set_status("⏳ Preparing…")
+        self._log("[dim]🔄 Starting launch sequence…[/]")
         self._run_launch()
 
     @work(thread=True)
@@ -194,7 +207,7 @@ class FlyVPNApp(App[None]):
         self._log_teardown(app_d, ok, from_thread=True)
         self.call_from_thread(self._set_buttons, launching=False)
         self.call_from_thread(self._set_status, "Ready")
-        self._busy = False
+        self._launching = False
 
     def _show_connect_result(self, region: str) -> None:
         """Wait for Tailscale exit node and display the outcome."""
@@ -247,11 +260,17 @@ class FlyVPNApp(App[None]):
                 f"🟡 Running in {region} — manual connect needed",
             )
 
+        self._launching = False
+
     def _do_stop(self) -> None:
-        if self._busy:
+        if self._stopping:
             return
         if self._session.is_active:
-            self._busy = True
+            self._stopping = True
+            self._launching = False
+            self._set_buttons(launching=True)
+            self.query_one("#btn-stop", Button).disabled = True
+            self._set_status("⏳ Stopping…")
             self._log("[bold yellow]⏹  Stopping node…[/]")
             self._run_stop()
         else:
@@ -263,6 +282,18 @@ class FlyVPNApp(App[None]):
         app_name, ok = self._session.teardown()
         self.call_from_thread(self._log, "[dim]🔌 Disconnected from exit node[/]")
         self._log_teardown(app_name, ok, from_thread=True)
+        if ok and app_name:
+            if self._session._ts_api_key:
+                self.call_from_thread(
+                    self._log,
+                    "[dim]🗑  Tailscale node removed from tailnet.[/]",
+                )
+            else:
+                self.call_from_thread(
+                    self._log,
+                    "[dim]💨 Tailscale ephemeral node will auto-remove"
+                    " within a few minutes.[/]",
+                )
         self.call_from_thread(self._set_buttons, launching=False)
         self.call_from_thread(self._set_status, "Ready")
         self._busy = False

@@ -36,6 +36,7 @@ from flyexit.fly_ops import (
 )
 from flyexit.tailscale import (
     connect_exit_node,
+    delete_device,
     disconnect_exit_node,
     wait_for_exit_node,
 )
@@ -103,9 +104,10 @@ class LaunchResult:
 class VPNSession:
     """Tracks the state of one ephemeral VPN session."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, ts_api_key: str = "") -> None:
         self.process: subprocess.Popen[str] | None = None
         self.app_name: str | None = None
+        self._ts_api_key = ts_api_key
 
     @property
     def is_active(self) -> bool:
@@ -242,4 +244,8 @@ class VPNSession:
         kill_all_machines(app_name)
         ok = destroy_app(app_name)
         self.app_name = None
+
+        if self._ts_api_key:
+            delete_device(self._ts_api_key)
+
         return app_name, ok

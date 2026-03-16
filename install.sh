@@ -68,6 +68,25 @@ if [[ ! -f "$ENV_FILE" ]]; then
     else
         info "Skipped — you can create .env later manually."
     fi
+
+    echo ""
+    info "Optional: Tailscale API key for instant device cleanup."
+    echo ""
+    echo -e "  Without it, ephemeral nodes auto-remove in ~5–30 min."
+    echo -e "  With it, the node is deleted from your tailnet immediately on Stop."
+    echo ""
+    echo -e "  Generate an API key at:"
+    echo -e "  ${CYAN}https://login.tailscale.com/admin/settings/keys${NC}"
+    echo -e "  (scroll to ${BOLD}API keys${NC} → ${BOLD}Generate API key${NC})"
+    echo ""
+    read -rp "  TAILSCALE_API_KEY (Enter to skip): " ts_api_key
+
+    if [[ -n "$ts_api_key" ]]; then
+        echo "TAILSCALE_API_KEY=$ts_api_key" >> "$ENV_FILE"
+        ok "API key saved — nodes will be removed instantly on Stop"
+    else
+        info "Skipped — ephemeral nodes will auto-remove after a few minutes."
+    fi
     echo ""
 fi
 

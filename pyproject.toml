@@ -44,7 +44,7 @@ select = [
     "RUF",    # ruff-specific
     "BLE",    # blind-except
 ]
-ignore = ["S603", "S607"]  # subprocess with variable / partial path — expected here
+ignore = ["S603", "S607", "S310"]  # subprocess with variable / partial path, urlopen with https-only URL
 
 [tool.ruff.lint.isort]
 known-first-party = ["flyexit"]
