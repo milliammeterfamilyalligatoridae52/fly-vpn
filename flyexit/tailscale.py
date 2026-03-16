@@ -1,0 +1,62 @@
+"""Tailscale exit-node management helpers."""
+
+from __future__ import annotations
+
+import contextlib
+import subprocess
+
+from flyexit.constants import TS_CONNECT_TIMEOUT, TS_EXIT_HOSTNAME, TS_POLL_INTERVAL
+
+
+def disconnect_exit_node() -> None:
+    """Tell local Tailscale to stop using the remote exit node."""
+    with contextlib.suppress(Exception):
+        subprocess.run(
+            ["tailscale", "set", "--exit-node="],
+            capture_output=True,
+            timeout=10,
+        )
+
+
+def connect_exit_node(hostname: str = TS_EXIT_HOSTNAME) -> bool:
+    """Tell local Tailscale to route traffic through the exit node."""
+    result = subprocess.run(
+        ["tailscale", "set", f"--exit-node={hostname}"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    return result.returncode == 0
+
+
+def is_exit_node_online(hostname: str = TS_EXIT_HOSTNAME) -> bool:
+    """Check if the exit node is visible in the local tailnet."""
+    result = subprocess.run(
+        ["tailscale", "status"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    if result.returncode != 0:
+        return False
+    for line in result.stdout.splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == hostname:
+            return "offline" not in line
+    return False
+
+
+def wait_for_exit_node(
+    hostname: str = TS_EXIT_HOSTNAME,
+    timeout: int = TS_CONNECT_TIMEOUT,
+    poll_interval: int = TS_POLL_INTERVAL,
+) -> bool:
+    """Block until the exit node appears in tailnet. Returns True if found."""
+    import time
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if is_exit_node_online(hostname):
+            return True
+        time.sleep(poll_interval)
+    return False

@@ -1,0 +1,45 @@
+[project]
+name = "fly-vpn"
+version = "0.1.0"
+description = "Ephemeral Tailscale exit-node launcher on Fly.io"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "python-dotenv>=1.0.1",
+    "textual>=1.0.0",
+]
+
+[project.scripts]
+fly-vpn = "main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["flyexit"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "F",      # pyflakes
+    "E", "W", # pycodestyle
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "S",      # bandit (security)
+    "B",      # bugbear
+    "A",      # builtins shadowing
+    "C4",     # comprehensions
+    "SIM",    # simplify
+    "TCH",    # type-checking block
+    "RUF",    # ruff-specific
+    "BLE",    # blind-except
+]
+ignore = ["S603", "S607"]  # subprocess with variable / partial path — expected here
+
+[tool.ruff.lint.isort]
+known-first-party = ["flyexit"]
