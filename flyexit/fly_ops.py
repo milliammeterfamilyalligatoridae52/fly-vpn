@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import json
 import subprocess
+import time
 from enum import Enum, auto
 
 from flyexit.constants import FLY_ENV
@@ -72,10 +73,17 @@ def ensure_app_exists(app_name: str, org: str) -> tuple[AppStatus, str]:
         text=True,
         env=FLY_ENV,
     )
-    if create.returncode == 0:
-        return AppStatus.CREATED, ""
+    if create.returncode != 0:
+        return AppStatus.FAILED, create.stderr.strip()
 
-    return AppStatus.FAILED, create.stderr.strip()
+    # Fly's internal DB may lag behind `apps create` returning 0.
+    # Poll until `fly status` sees the app (up to ~5 s).
+    for _ in range(5):
+        if app_exists(app_name):
+            return AppStatus.CREATED, ""
+        time.sleep(1)
+
+    return AppStatus.CREATED, ""
 
 
 def destroy_app(app_name: str) -> bool:

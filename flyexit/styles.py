@@ -17,15 +17,57 @@ Screen {
     margin-bottom: 1;
 }
 
-#region-row {
-    height: 3;
-    align: left middle;
+#top-row {
+    height: auto;
 }
 
-#region-row Label {
-    margin: 0 1 0 0;
+#region-col {
+    width: 1fr;
+    height: auto;
+}
+
+#stats-col {
+    width: 1fr;
+    height: auto;
+    padding: 0 0 0 2;
+}
+
+#stats-text {
+    height: 1;
     text-style: bold;
+}
+
+#cost-spark {
+    height: 1;
+    margin-top: 1;
+}
+
+#btn-update {
+    margin-top: 1;
     width: auto;
+    min-width: 12;
+    height: 1;
+    background: $surface;
+    border: none;
+    color: $text-muted;
+}
+
+#btn-update:hover {
+    color: $text;
+    background: $panel-lighten-2;
+}
+
+#update-row {
+    height: auto;
+    align: right middle;
+}
+
+Sparkline > .sparkline--max-color {
+    color: $success;
+}
+
+Sparkline > .sparkline--min-color {
+    color: $success 20%;
 }
 
 #region-select {
@@ -35,11 +77,11 @@ Screen {
 #button-row {
     height: auto;
     margin-top: 1;
-    align: center middle;
+    align: left middle;
 }
 
 #btn-launch {
-    margin: 0 1;
+    margin: 0 1 0 0;
 }
 
 #btn-stop {
@@ -49,7 +91,8 @@ Screen {
 #status-bar {
     height: 1;
     margin: 0 0 1 0;
-    text-align: center;
+    padding: 0 2;
+    text-align: left;
     color: $text-muted;
     text-style: italic;
 }
@@ -58,5 +101,6 @@ Screen {
     border: tall $accent;
     height: 1fr;
     min-height: 10;
+    padding: 0 2;
 }
 """

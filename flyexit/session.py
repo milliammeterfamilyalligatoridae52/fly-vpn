@@ -125,6 +125,7 @@ class VPNSession:
             )
         else:
             self._client = None
+        self._db_session_id: int | None = None
 
     @property
     def has_auth(self) -> bool:
@@ -135,6 +136,28 @@ class VPNSession:
     def is_active(self) -> bool:
         """True when a machine is launching or running."""
         return self.process is not None or self.app_name is not None
+
+    def _start_usage_log(self, region: str) -> None:
+        """Record session start in the usage database."""
+        try:
+            from flyexit.usage_db import log_start
+
+            self._db_session_id = log_start(region)
+        except Exception:  # noqa: BLE001, S110
+            pass
+
+    def _end_usage_log(self) -> None:
+        """Finalize the usage record with end time and cost."""
+        if self._db_session_id is None:
+            return
+        try:
+            from flyexit.usage_db import log_end
+
+            log_end(self._db_session_id)
+        except Exception:  # noqa: BLE001, S110
+            pass
+        finally:
+            self._db_session_id = None
 
     def preflight(
         self,
@@ -237,6 +260,7 @@ class VPNSession:
             self.process = None
 
             if code == 0:
+                self._start_usage_log(region)
                 return LaunchResult(status=LaunchStatus.OK)
 
             full_output = "\n".join(output_lines)
@@ -272,6 +296,7 @@ class VPNSession:
         Disconnects Tailscale, destroys Fly app, and removes
         the device from the tailnet.  No UI, no exceptions.
         """
+        self._end_usage_log()
         disconnect_exit_node()
         force_kill_process(self.process)
         self.process = None
@@ -289,6 +314,7 @@ class VPNSession:
         Returns ``(app_name, success)``.  If there was no active app,
         returns ``(None, True)``.
         """
+        self._end_usage_log()
         disconnect_exit_node()
         force_kill_process(self.process)
         self.process = None

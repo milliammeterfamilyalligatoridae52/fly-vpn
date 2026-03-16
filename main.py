@@ -20,6 +20,12 @@ def main() -> None:
         run_setup_acl()
         return
 
+    if "--stats" in sys.argv:
+        from flyexit.usage_db import print_stats
+
+        print_stats()
+        return
+
     from flyexit.app import FlyVPNApp
 
     app = FlyVPNApp()
