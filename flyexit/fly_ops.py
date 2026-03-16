@@ -8,7 +8,6 @@ import subprocess
 from enum import Enum, auto
 
 from flyexit.constants import FLY_ENV
-from flyexit.tailscale import disconnect_exit_node
 
 # Timeout (seconds) to wait for graceful subprocess shutdown before force-killing.
 GRACEFUL_TIMEOUT = 5
@@ -20,7 +19,6 @@ _KILLABLE_STATES: frozenset[str] = frozenset({"started", "starting", "replacing"
 class AppStatus(Enum):
     """Result of :func:`ensure_app_exists`."""
 
-    FOUND = auto()
     CREATED = auto()
     FAILED = auto()
 
@@ -34,7 +32,6 @@ class AuthStatus(Enum):
 
 def cleanup_app_sync(app_name: str) -> None:
     """Last-resort cleanup — called by atexit / signal handler outside Textual."""
-    disconnect_exit_node()
     with contextlib.suppress(Exception):
         subprocess.run(
             ["fly", "apps", "destroy", app_name, "--yes"],
@@ -56,15 +53,18 @@ def app_exists(app_name: str) -> bool:
 
 
 def ensure_app_exists(app_name: str, org: str) -> tuple[AppStatus, str]:
-    """Check if the Fly app exists; create it if not.
+    """Destroy any leftover app, then create a fresh one.
 
-    Returns ``(status, error)``.  On ``FOUND`` / ``CREATED`` the error
-    string is empty; on ``FAILED`` it contains stderr.
-    If the app already exists, stale machines are killed first.
+    Returns ``(status, error)``.  On ``CREATED`` the error string is
+    empty; on ``FAILED`` it contains stderr.
+
+    Always starts from a clean slate — if the app exists (e.g. from a
+    crashed session), it is destroyed first so there are no stale
+    machines or configs.
     """
     if app_exists(app_name):
         kill_all_machines(app_name)
-        return AppStatus.FOUND, ""
+        destroy_app(app_name)
 
     create = subprocess.run(
         ["fly", "apps", "create", app_name, "--org", org],
@@ -88,6 +88,9 @@ def destroy_app(app_name: str) -> bool:
         env=FLY_ENV,
     )
     return result.returncode == 0
+
+
+MACHINE_NAME = "ephemeral-exit-node"
 
 
 def kill_all_machines(app_name: str) -> int:
@@ -124,6 +127,39 @@ def kill_all_machines(app_name: str) -> int:
             if r.returncode == 0:
                 killed += 1
     return killed
+
+
+def kill_machine_by_name(
+    app_name: str,
+    name: str = MACHINE_NAME,
+) -> bool:
+    """Find the machine we created by *name* and force-kill it."""
+    ls = subprocess.run(
+        ["fly", "machines", "list", "--app", app_name, "--json"],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        env=FLY_ENV,
+    )
+    if ls.returncode != 0:
+        return False
+
+    try:
+        machines = json.loads(ls.stdout)
+    except (json.JSONDecodeError, TypeError):  # fmt: skip
+        return False
+
+    for m in machines:
+        if m.get("name") == name and m.get("state", "") in _KILLABLE_STATES:
+            mid = m["id"]
+            r = subprocess.run(
+                ["fly", "machines", "kill", mid, "--app", app_name],
+                capture_output=True,
+                timeout=15,
+                env=FLY_ENV,
+            )
+            return r.returncode == 0
+    return False
 
 
 def check_auth() -> tuple[AuthStatus, str]:

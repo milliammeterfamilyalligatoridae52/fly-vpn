@@ -32,7 +32,7 @@ from flyexit.fly_ops import (
     destroy_app,
     ensure_app_exists,
     force_kill_process,
-    kill_all_machines,
+    kill_machine_by_name,
 )
 from flyexit.tailscale import (
     connect_exit_node,
@@ -268,12 +268,19 @@ class VPNSession:
     def emergency_cleanup(self) -> None:
         """Kill process & destroy app synchronously.
 
-        No UI, no exceptions.
+        Handles SIGINT, SIGTERM, SIGHUP, and atexit.
+        Disconnects Tailscale, destroys Fly app, and removes
+        the device from the tailnet.  No UI, no exceptions.
         """
+        disconnect_exit_node()
         force_kill_process(self.process)
         self.process = None
         if self.app_name:
             cleanup_app_sync(self.app_name)
+            if self._client is not None:
+                device_id = get_device_id()
+                if device_id:
+                    self._client.delete_device(device_id)
             self.app_name = None
 
     def teardown(self) -> tuple[str | None, bool]:
@@ -290,7 +297,7 @@ class VPNSession:
         if not app_name:
             return None, True
 
-        kill_all_machines(app_name)
+        kill_machine_by_name(app_name)
         ok = destroy_app(app_name)
         self.app_name = None
 

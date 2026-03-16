@@ -28,7 +28,6 @@ from flyexit.constants import (
     TS_EXIT_HOSTNAME,
 )
 from flyexit.session import (
-    AppStatus,
     ConnectStatus,
     LaunchResult,
     LaunchStatus,
@@ -74,6 +73,7 @@ class FlyVPNApp(App[None]):
     def on_mount(self) -> None:
         signal.signal(signal.SIGINT, self._on_signal)
         signal.signal(signal.SIGTERM, self._on_signal)
+        signal.signal(signal.SIGHUP, self._on_signal)
 
         log = self._rich_log
         log.write("[bold green]🛡  Fly VPN[/] initialized")
@@ -168,8 +168,9 @@ class FlyVPNApp(App[None]):
             self.call_from_thread(self._log, f"[bold red]⚠  {pf.error}[/]")
             return
 
-        verb = "found" if pf.app_status is AppStatus.FOUND else "created ✅"
-        self.call_from_thread(self._log, f"[dim]App [bold]{app_name}[/bold] {verb}[/]")
+        self.call_from_thread(
+            self._log, f"[dim]App [bold]{app_name}[/bold] created ✅[/]"
+        )
 
         region = self.query_one("#region-select", Select).value
         if region is Select.BLANK:
