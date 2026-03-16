@@ -104,10 +104,16 @@ class LaunchResult:
 class VPNSession:
     """Tracks the state of one ephemeral VPN session."""
 
-    def __init__(self, *, ts_api_key: str = "") -> None:
+    def __init__(
+        self,
+        *,
+        ts_api_key: str = "",
+        ts_login_server: str = "",
+    ) -> None:
         self.process: subprocess.Popen[str] | None = None
         self.app_name: str | None = None
         self._ts_api_key = ts_api_key
+        self._ts_login_server = ts_login_server
 
     @property
     def is_active(self) -> bool:
@@ -165,6 +171,7 @@ class VPNSession:
                 region,
                 auth_key,
                 TS_EXIT_HOSTNAME,
+                login_server=self._ts_login_server,
             )
             self.process = subprocess.Popen(
                 cmd,

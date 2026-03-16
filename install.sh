@@ -87,6 +87,30 @@ if [[ ! -f "$ENV_FILE" ]]; then
     else
         info "Skipped — ephemeral nodes will auto-remove after a few minutes."
     fi
+
+    echo ""
+    info "Self-hosted Tailscale (Headscale)"
+    echo ""
+    echo -e "  If you run your own coordination server (Headscale),"
+    echo -e "  enter its URL below. The Fly exit node will register there"
+    echo -e "  instead of ${BOLD}login.tailscale.com${NC}."
+    echo ""
+    read -rp "  TS_LOGIN_SERVER (Enter to skip — uses Tailscale SaaS): " ts_login_server
+
+    if [[ -n "$ts_login_server" ]]; then
+        echo "TS_LOGIN_SERVER=$ts_login_server" >> "$ENV_FILE"
+        ok "Login server saved → $ts_login_server"
+        echo ""
+        info "Note: TAILSCALE_API_KEY is not compatible with Headscale."
+        echo -e "  Headscale removes ephemeral nodes on disconnect automatically."
+        # Remove API key if it was set — it won't work with Headscale
+        if grep -q "^TAILSCALE_API_KEY=" "$ENV_FILE" 2>/dev/null; then
+            sed -i.bak '/^TAILSCALE_API_KEY=/d' "$ENV_FILE" && rm -f "$ENV_FILE.bak"
+            info "Removed TAILSCALE_API_KEY (not needed with Headscale)."
+        fi
+    else
+        info "Skipped — using Tailscale SaaS."
+    fi
     echo ""
 fi
 

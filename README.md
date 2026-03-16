@@ -36,6 +36,17 @@ Under the hood: WireGuard-powered [Tailscale](https://tailscale.com) mesh + [Fly
 
 ---
 
+## Requirements
+
+- macOS or Linux (Windows is **not** supported)
+- Python 3.14+
+- [Fly.io](https://fly.io) account with a payment method on file
+- [Fly.io CLI](https://fly.io/docs/flyctl/install/) (`fly`) — auto-installed by `install.sh`
+- [Tailscale](https://tailscale.com) account + auth key — **or** a self-hosted [Headscale](https://github.com/juanfont/headscale) server
+- *(Optional)* [Tailscale API key](https://login.tailscale.com/admin/settings/keys) for instant device cleanup (SaaS only)
+
+---
+
 ## Why teams love it
 
 - 🌍 **Choose region instantly** (EU/US/APAC and more)
@@ -68,10 +79,12 @@ bash install.sh
 Installer flow:
 1. Installs **uv** and **Fly CLI** (if missing)
 2. Prompts for **TAILSCALE_AUTHKEY** and writes `.env`
-3. Shows required **ACL** config for exit-node auto-approval
-4. Installs dependencies
-5. Checks Fly.io auth (opens `fly auth login` if needed)
-6. Registers desktop entry (macOS Applications / GNOME menu)
+3. Optionally prompts for **TAILSCALE_API_KEY** (enables instant device cleanup on Stop)
+4. Asks if you use **self-hosted Tailscale (Headscale)** — prompts for `TS_LOGIN_SERVER`
+5. Shows required **ACL** config for exit-node auto-approval
+6. Installs dependencies
+7. Checks Fly.io auth (opens `fly auth login` if needed)
+8. Registers desktop entry (macOS Applications / GNOME menu)
 
 ---
 
@@ -131,10 +144,24 @@ Installer flow:
 
 ## Tailscale setup (required once)
 
+### Auth key (required)
+
 Create an auth key that is:
 - **Reusable**
 - **Ephemeral**
 - Tagged with: `tag:ephemeral-vpn`
+
+### API key (optional — instant cleanup)
+
+By default, ephemeral Tailscale nodes auto-remove after ~5–30 minutes.
+With a **TAILSCALE_API_KEY**, the node is deleted immediately on Stop.
+
+Generate one at [Tailscale Admin → Keys → API keys](https://login.tailscale.com/admin/settings/keys).
+Then add it to `.env`:
+
+```env
+TAILSCALE_API_KEY=tskey-api-…
+```
 
 Add ACL policy in Tailscale admin:
 
@@ -154,6 +181,84 @@ Add ACL policy in Tailscale admin:
   }
 }
 ```
+
+---
+
+## Self-hosted Tailscale (Headscale)
+
+[Headscale](https://github.com/juanfont/headscale) is an open-source, self-hosted implementation of the Tailscale coordination server.
+Fly VPN works with Headscale out of the box — just set the right env vars.
+
+### 1. Set `TS_LOGIN_SERVER` in `.env`
+
+The installer will ask if you use a self-hosted coordination server.
+If you skipped it, add the variable manually:
+
+```env
+TS_LOGIN_SERVER=https://hs.example.com
+```
+
+The Fly exit node will register with your Headscale instance instead of `login.tailscale.com`.
+
+### 2. Make sure your local client is on the same Headscale server
+
+```bash
+tailscale login --login-server=https://hs.example.com
+```
+
+Both the local machine and the Fly exit node must be on the **same** Headscale tailnet.
+
+### 3. Create an auth key via Headscale
+
+```bash
+# Headscale CLI
+headscale preauthkeys create --user your-user --reusable --ephemeral
+
+# or via Headscale API
+curl -X POST https://hs.example.com/api/v1/preauthkey \
+  -H "Authorization: Bearer $HS_API_KEY" \
+  -d '{"user":"your-user","reusable":true,"ephemeral":true}'
+```
+
+Put the key in `.env` as usual:
+
+```env
+TAILSCALE_AUTHKEY=your-headscale-preauth-key
+```
+
+### 4. ACL policy
+
+Headscale ACLs live in the config file (typically `/etc/headscale/acl.yaml` or `acl.json`).
+The same policy applies — allow the ephemeral tag and auto-approve exit nodes:
+
+```yaml
+# acl.yaml
+tagOwners:
+  tag:ephemeral-vpn:
+    - your-user
+
+autoApprovers:
+  exitNode:
+    - tag:ephemeral-vpn
+```
+
+### 5. Minimal `.env` for Headscale
+
+```env
+TAILSCALE_AUTHKEY=your-headscale-preauth-key
+TS_LOGIN_SERVER=https://hs.example.com
+```
+
+> No `TAILSCALE_API_KEY` needed — Headscale removes ephemeral nodes immediately on disconnect.
+
+### 6. Comparison
+
+| Feature | Tailscale SaaS | Headscale |
+|---------|---------------|-----------|
+| Auth keys | Admin console | `headscale preauthkeys create` |
+| ACL config | Web UI | Config file on server |
+| Instant device cleanup (`TAILSCALE_API_KEY`) | ✅ Supported | ❌ Not compatible — not needed |
+| Ephemeral node auto-remove | ~5–30 min | Immediate (on disconnect) |
 
 ---
 
@@ -184,6 +289,7 @@ python main.py
 - Exit-node usage is explicit (manual Launch)
 - Exit route is removed during teardown
 - Fly app/machines are destroyed on cleanup paths
+- Tailscale device is removed instantly when API key is set (otherwise auto-removes in ~5–30 min)
 - Watchdog can be run from cron/CI to enforce cleanup
 
 > Fly VPN does **not** replace your identity/privacy model. It automates infra lifecycle and routing ergonomics.
@@ -201,16 +307,6 @@ python main.py --watchdog
 It checks for orphaned app resources and destroys them to prevent charges.
 
 Tip: great as a daily cron safety net. The installer will offer to set this up automatically.
-
----
-
-## Requirements
-
-- macOS or Linux (Windows is **not** supported)
-- Python 3.14+
-- [Fly.io](https://fly.io) account with a payment method on file
-- [Fly.io CLI](https://fly.io/docs/flyctl/install/) (`fly`) — auto-installed by `install.sh`
-- [Tailscale](https://tailscale.com) account + auth key
 
 ---
 

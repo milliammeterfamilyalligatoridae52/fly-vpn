@@ -146,9 +146,18 @@ def check_auth() -> tuple[AuthStatus, str]:
 
 
 def build_fly_cmd(
-    app_name: str, region: str, auth_key: str, hostname: str
+    app_name: str,
+    region: str,
+    auth_key: str,
+    hostname: str,
+    *,
+    login_server: str = "",
 ) -> list[str]:
     """Build the ``fly m run`` command for launching an exit node."""
+    extra_args = "--advertise-exit-node --advertise-tags=tag:ephemeral-vpn"
+    if login_server:
+        extra_args += f" --login-server={login_server}"
+
     return [
         "fly",
         "m",
@@ -163,7 +172,7 @@ def build_fly_cmd(
         "-e",
         f"TS_AUTHKEY={auth_key}",
         "-e",
-        "TS_EXTRA_ARGS=--advertise-exit-node --advertise-tags=tag:ephemeral-vpn",
+        f"TS_EXTRA_ARGS={extra_args}",
         "-e",
         f"TS_HOSTNAME={hostname}",
     ]

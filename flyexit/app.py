@@ -58,6 +58,7 @@ class FlyVPNApp(App[None]):
         self._auth_key: str = os.environ.get("TAILSCALE_AUTHKEY", "")
         self._session = VPNSession(
             ts_api_key=os.environ.get("TAILSCALE_API_KEY", ""),
+            ts_login_server=os.environ.get("TS_LOGIN_SERVER", ""),
         )
         self._launching = False
         self._stopping = False
