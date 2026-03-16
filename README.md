@@ -57,7 +57,7 @@ Under the hood: WireGuard-powered [Tailscale](https://tailscale.com) mesh + [Fly
 ## Why teams love it
 
 - 🔑 **One API key** — ACL, auth keys, cleanup — all automatic
-- 🌍 **35+ regions** — pick from dropdown, launch in seconds
+- 🌍 **18 gateway regions** — pick from dropdown, launch in seconds
 - ⚡ **One-click launch** from a polished terminal UI
 - 🔗 **Auto-connect** to the exit node when it comes online
 - 🧹 **Safe teardown** on Stop / Quit / Signal
