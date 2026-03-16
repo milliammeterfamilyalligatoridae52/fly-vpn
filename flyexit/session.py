@@ -36,8 +36,8 @@ from flyexit.fly_ops import (
 )
 from flyexit.tailscale import (
     connect_exit_node,
-    delete_device,
     disconnect_exit_node,
+    get_device_id,
     wait_for_exit_node,
 )
 
@@ -107,13 +107,29 @@ class VPNSession:
     def __init__(
         self,
         *,
+        ts_auth_key: str = "",
         ts_api_key: str = "",
         ts_login_server: str = "",
     ) -> None:
         self.process: subprocess.Popen[str] | None = None
         self.app_name: str | None = None
-        self._ts_api_key = ts_api_key
+        self._ts_auth_key = ts_auth_key
         self._ts_login_server = ts_login_server
+
+        # SaaS-only: API client for auth-key generation & device cleanup.
+        if ts_api_key and not ts_login_server:
+            from flyexit.tailscale_api import TailscaleAPIClient
+
+            self._client: TailscaleAPIClient | None = TailscaleAPIClient(
+                ts_api_key,
+            )
+        else:
+            self._client = None
+
+    @property
+    def has_auth(self) -> bool:
+        """True when Tailscale auth is available (explicit key or API)."""
+        return bool(self._ts_auth_key) or self._client is not None
 
     @property
     def is_active(self) -> bool:
@@ -125,7 +141,7 @@ class VPNSession:
         app_name: str,
         org: str,
     ) -> PreflightResult:
-        """Verify Fly auth and ensure the Fly app exists."""
+        """Verify Fly auth, ensure ACL is configured, and ensure the Fly app exists."""
         auth_status, info = check_auth()
         if auth_status is AuthStatus.NOT_AUTHENTICATED:
             return PreflightResult(
@@ -134,6 +150,12 @@ class VPNSession:
             )
 
         username = info
+
+        # SaaS + API client → ensure ACL is ready (idempotent).
+        if self._client is not None:
+            from flyexit.acl_setup import setup_acl
+
+            setup_acl(self._client)
 
         app_status, err = ensure_app_exists(app_name, org)
         if app_status is AppStatus.FAILED:
@@ -153,17 +175,37 @@ class VPNSession:
         self,
         app_name: str,
         region: str,
-        auth_key: str,
         *,
         on_output: Callable[[str], None] | None = None,
     ) -> LaunchResult:
         """Spawn a Fly machine and stream its stdout.
+
+        If no explicit ``ts_auth_key`` was provided but an API client
+        is available, a short-lived auth key is generated automatically.
 
         *on_output* is called for every line of process output so the
         UI can display it in real time without knowing anything about
         subprocesses.
         """
         self.app_name = app_name
+
+        # Resolve auth key: explicit > auto-generated via API.
+        auth_key = self._ts_auth_key
+        if not auth_key and self._client is not None:
+            try:
+                auth_key = self._client.create_auth_key()
+                if on_output:
+                    on_output("[dim]🔑 Auth key generated automatically[/]")
+            except Exception as exc:  # noqa: BLE001
+                return LaunchResult(
+                    status=LaunchStatus.ERROR,
+                    error=f"Failed to generate Tailscale auth key: {exc}",
+                )
+        if not auth_key:
+            return LaunchResult(
+                status=LaunchStatus.ERROR,
+                error="No Tailscale auth key available.",
+            )
 
         try:
             cmd = build_fly_cmd(
@@ -252,7 +294,9 @@ class VPNSession:
         ok = destroy_app(app_name)
         self.app_name = None
 
-        if self._ts_api_key:
-            delete_device(self._ts_api_key)
+        if self._client is not None:
+            device_id = get_device_id()
+            if device_id:
+                self._client.delete_device(device_id)
 
         return app_name, ok

@@ -14,6 +14,12 @@ def main() -> None:
         run_watchdog()
         return
 
+    if "--setup-acl" in sys.argv:
+        from flyexit.acl_setup import run_setup_acl
+
+        run_setup_acl()
+        return
+
     from flyexit.app import FlyVPNApp
 
     app = FlyVPNApp()

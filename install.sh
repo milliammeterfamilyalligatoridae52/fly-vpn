@@ -52,28 +52,12 @@ if [[ ! -f "$ENV_FILE" ]]; then
     echo ""
     info "No .env file found — let's set it up."
     echo ""
-    echo -e "  Create a Tailscale auth key at:"
-    echo -e "  ${CYAN}https://login.tailscale.com/admin/settings/keys${NC}"
+    echo -e "  ${BOLD}Option A — Tailscale SaaS (recommended)${NC}"
     echo ""
-    echo -e "  Required settings when generating the key:"
-    echo -e "    ${BOLD}✓${NC} Reusable    — so one key works for many sessions"
-    echo -e "    ${BOLD}✓${NC} Ephemeral   — device auto-removed when it goes offline"
-    echo -e "    ${BOLD}✓${NC} Tags        — assign ${BOLD}tag:ephemeral-vpn${NC}"
-    echo ""
-    read -rp "  TAILSCALE_AUTHKEY: " ts_key
-
-    if [[ -n "$ts_key" ]]; then
-        echo "TAILSCALE_AUTHKEY=$ts_key" > "$ENV_FILE"
-        ok ".env created with your auth key"
-    else
-        info "Skipped — you can create .env later manually."
-    fi
-
-    echo ""
-    info "Optional: Tailscale API key for instant device cleanup."
-    echo ""
-    echo -e "  Without it, ephemeral nodes auto-remove in ~5–30 min."
-    echo -e "  With it, the node is deleted from your tailnet immediately on Stop."
+    echo -e "  A single API key is all you need.  Fly VPN will automatically:"
+    echo -e "    • configure ACL policies"
+    echo -e "    • generate short-lived auth keys per session"
+    echo -e "    • clean up devices on stop"
     echo ""
     echo -e "  Generate an API key at:"
     echo -e "  ${CYAN}https://login.tailscale.com/admin/settings/keys${NC}"
@@ -82,10 +66,28 @@ if [[ ! -f "$ENV_FILE" ]]; then
     read -rp "  TAILSCALE_API_KEY (Enter to skip): " ts_api_key
 
     if [[ -n "$ts_api_key" ]]; then
-        echo "TAILSCALE_API_KEY=$ts_api_key" >> "$ENV_FILE"
-        ok "API key saved — nodes will be removed instantly on Stop"
+        echo "TAILSCALE_API_KEY=$ts_api_key" > "$ENV_FILE"
+        ok "API key saved — auth keys will be generated automatically per session"
     else
-        info "Skipped — ephemeral nodes will auto-remove after a few minutes."
+        echo ""
+        echo -e "  ${BOLD}Option B — Manual auth key${NC}"
+        echo ""
+        echo -e "  Create a Tailscale auth key at:"
+        echo -e "  ${CYAN}https://login.tailscale.com/admin/settings/keys${NC}"
+        echo ""
+        echo -e "  Required settings when generating the key:"
+        echo -e "    ${BOLD}✓${NC} Reusable    — so one key works for many sessions"
+        echo -e "    ${BOLD}✓${NC} Ephemeral   — device auto-removed when it goes offline"
+        echo -e "    ${BOLD}✓${NC} Tags        — assign ${BOLD}tag:ephemeral-vpn${NC}"
+        echo ""
+        read -rp "  TAILSCALE_AUTHKEY (Enter to skip): " ts_auth_key
+
+        if [[ -n "$ts_auth_key" ]]; then
+            echo "TAILSCALE_AUTHKEY=$ts_auth_key" > "$ENV_FILE"
+            ok ".env created with your auth key"
+        else
+            info "Skipped — you can create .env later manually."
+        fi
     fi
 
     echo ""
@@ -98,15 +100,24 @@ if [[ ! -f "$ENV_FILE" ]]; then
     read -rp "  TS_LOGIN_SERVER (Enter to skip — uses Tailscale SaaS): " ts_login_server
 
     if [[ -n "$ts_login_server" ]]; then
+        # Headscale needs a manual auth key, not API key
+        if [[ -f "$ENV_FILE" ]] && grep -q "^TAILSCALE_API_KEY=" "$ENV_FILE" 2>/dev/null; then
+            sed -i.bak '/^TAILSCALE_API_KEY=/d' "$ENV_FILE" && rm -f "$ENV_FILE.bak"
+            info "Removed TAILSCALE_API_KEY (Headscale uses its own API)."
+        fi
         echo "TS_LOGIN_SERVER=$ts_login_server" >> "$ENV_FILE"
         ok "Login server saved → $ts_login_server"
         echo ""
-        info "Note: TAILSCALE_API_KEY is not compatible with Headscale."
-        echo -e "  Headscale removes ephemeral nodes on disconnect automatically."
-        # Remove API key if it was set — it won't work with Headscale
-        if grep -q "^TAILSCALE_API_KEY=" "$ENV_FILE" 2>/dev/null; then
-            sed -i.bak '/^TAILSCALE_API_KEY=/d' "$ENV_FILE" && rm -f "$ENV_FILE.bak"
-            info "Removed TAILSCALE_API_KEY (not needed with Headscale)."
+        # Prompt for auth key if not already set
+        if ! grep -q "^TAILSCALE_AUTHKEY=" "$ENV_FILE" 2>/dev/null; then
+            echo -e "  Headscale requires a manual auth key (preauthkey)."
+            echo -e "  Generate one with: ${BOLD}headscale preauthkeys create --reusable --ephemeral${NC}"
+            echo ""
+            read -rp "  TAILSCALE_AUTHKEY: " ts_headscale_key
+            if [[ -n "$ts_headscale_key" ]]; then
+                echo "TAILSCALE_AUTHKEY=$ts_headscale_key" >> "$ENV_FILE"
+                ok "Headscale auth key saved"
+            fi
         fi
     else
         info "Skipped — using Tailscale SaaS."
@@ -114,36 +125,56 @@ if [[ ! -f "$ENV_FILE" ]]; then
     echo ""
 fi
 
-# ── Tailscale ACL reminder ──────────────────────────────────
+# ── Tailscale ACL info ────────────────────────────────────────
 
-echo ""
-info "Tailscale ACL setup required (one-time)."
-echo ""
-echo -e "  Add these blocks to your Tailscale ACL file:"
-echo -e "  ${CYAN}https://login.tailscale.com/admin/acls/file${NC}"
-echo ""
-echo -e "  ${BOLD}1.${NC} In ${BOLD}\"tagOwners\"${NC} — allow your account to use the tag:"
-echo ""
-echo -e "     ${GREEN}\"tag:ephemeral-vpn\": [\"YOUR_EMAIL@gmail.com\"]${NC}"
-echo ""
-echo -e "  ${BOLD}2.${NC} In ${BOLD}\"nodeAttrs\"${NC} — allow tagged nodes to be exit nodes:"
-echo ""
-echo -e "     ${GREEN}{${NC}"
-echo -e "     ${GREEN}  \"target\": [\"tag:ephemeral-vpn\"],${NC}"
-echo -e "     ${GREEN}  \"attr\": [\"can-be-exit-node\"]${NC}"
-echo -e "     ${GREEN}}${NC}"
-echo ""
-echo -e "  ${BOLD}3.${NC} In ${BOLD}\"autoApprovers\"${NC} — auto-approve exit nodes (no manual approval):"
-echo ""
-echo -e "     ${GREEN}\"autoApprovers\": {${NC}"
-echo -e "     ${GREEN}  \"exitNode\": [\"tag:ephemeral-vpn\"]${NC}"
-echo -e "     ${GREEN}}${NC}"
-echo ""
-read -rp "  Press Enter when done (or 's' to skip): " acl_ack
-if [[ "$acl_ack" == "s" || "$acl_ack" == "S" ]]; then
-    info "Skipped — remember to configure ACL before first launch."
-else
-    ok "ACL acknowledged"
+# SaaS + API key → ACL is configured automatically on first Launch.
+# Headscale / manual auth key → user must configure ACL themselves.
+
+HAS_API_KEY=false
+if [[ -f "$ENV_FILE" ]] && grep -q "^TAILSCALE_API_KEY=" "$ENV_FILE" 2>/dev/null; then
+    HAS_API_KEY=true
+fi
+HAS_LOGIN_SERVER=false
+if [[ -f "$ENV_FILE" ]] && grep -q "^TS_LOGIN_SERVER=" "$ENV_FILE" 2>/dev/null; then
+    HAS_LOGIN_SERVER=true
+fi
+
+if [[ "$HAS_API_KEY" == "true" && "$HAS_LOGIN_SERVER" == "false" ]]; then
+    ok "Tailscale ACL will be configured automatically on first Launch"
+elif [[ -f "$ENV_FILE" ]]; then
+    echo ""
+    info "Tailscale ACL setup required (one-time, manual)."
+    echo ""
+    if [[ "$HAS_LOGIN_SERVER" == "true" ]]; then
+        echo -e "  Add these blocks to your Headscale ACL config file."
+    else
+        echo -e "  Add these blocks to your Tailscale ACL file:"
+        echo -e "  ${CYAN}https://login.tailscale.com/admin/acls/file${NC}"
+    fi
+    echo ""
+    echo -e "  ${BOLD}1.${NC} In ${BOLD}\"tagOwners\"${NC} — allow your account to use the tag:"
+    echo ""
+    echo -e "     ${GREEN}\"tag:ephemeral-vpn\": [\"autogroup:owner\"]${NC}"
+    echo ""
+    echo -e "  ${BOLD}2.${NC} In ${BOLD}\"nodeAttrs\"${NC} — allow tagged nodes to be exit nodes:"
+    echo ""
+    echo -e "     ${GREEN}{${NC}"
+    echo -e "     ${GREEN}  \"target\": [\"tag:ephemeral-vpn\"],${NC}"
+    echo -e "     ${GREEN}  \"attr\": [\"can-be-exit-node\"]${NC}"
+    echo -e "     ${GREEN}}${NC}"
+    echo ""
+    echo -e "  ${BOLD}3.${NC} In ${BOLD}\"autoApprovers\"${NC} — auto-approve exit nodes (no manual approval):"
+    echo ""
+    echo -e "     ${GREEN}\"autoApprovers\": {${NC}"
+    echo -e "     ${GREEN}  \"exitNode\": [\"tag:ephemeral-vpn\"]${NC}"
+    echo -e "     ${GREEN}}${NC}"
+    echo ""
+    read -rp "  Press Enter when done (or 's' to skip): " acl_ack
+    if [[ "$acl_ack" == "s" || "$acl_ack" == "S" ]]; then
+        info "Skipped — remember to configure ACL before first launch."
+    else
+        ok "ACL acknowledged"
+    fi
 fi
 echo ""
 

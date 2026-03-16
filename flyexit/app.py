@@ -55,8 +55,8 @@ class FlyVPNApp(App[None]):
     def __init__(self) -> None:
         super().__init__()
         self._cfg = config.load()
-        self._auth_key: str = os.environ.get("TAILSCALE_AUTHKEY", "")
         self._session = VPNSession(
+            ts_auth_key=os.environ.get("TAILSCALE_AUTHKEY", ""),
             ts_api_key=os.environ.get("TAILSCALE_API_KEY", ""),
             ts_login_server=os.environ.get("TS_LOGIN_SERVER", ""),
         )
@@ -78,10 +78,10 @@ class FlyVPNApp(App[None]):
         log = self._rich_log
         log.write("[bold green]🛡  Fly VPN[/] initialized")
         log.write("")
-        if not self._auth_key:
-            log.write("[bold red]⚠  TAILSCALE_AUTHKEY not set![/]")
-            log.write("Create a [bold].env[/] file with:")
-            log.write("  TAILSCALE_AUTHKEY=tskey-auth-...")
+        if not self._session.has_auth:
+            log.write("[bold red]⚠  No Tailscale auth configured![/]")
+            log.write("Set [bold]TAILSCALE_API_KEY[/] (recommended)")
+            log.write("or [bold]TAILSCALE_AUTHKEY[/] in your .env file.")
             self.query_one("#btn-launch", Button).disabled = True
 
     def compose(self) -> ComposeResult:
@@ -188,7 +188,6 @@ class FlyVPNApp(App[None]):
         result = self._session.launch(
             app_name,
             region,
-            self._auth_key,
             on_output=lambda line: self.call_from_thread(self._log, line),
         )
 
@@ -284,7 +283,7 @@ class FlyVPNApp(App[None]):
         self.call_from_thread(self._log, "[dim]🔌 Disconnected from exit node[/]")
         self._log_teardown(app_name, ok, from_thread=True)
         if ok and app_name:
-            if self._session._ts_api_key:
+            if self._session._client is not None:
                 self.call_from_thread(
                     self._log,
                     "[dim]🗑  Tailscale node removed from tailnet.[/]",

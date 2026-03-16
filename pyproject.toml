@@ -5,6 +5,7 @@ description = "Ephemeral Tailscale exit-node launcher on Fly.io"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "httpx>=0.28",
     "python-dotenv>=1.0.1",
     "textual>=1.0.0",
 ]
@@ -44,7 +45,7 @@ select = [
     "RUF",    # ruff-specific
     "BLE",    # blind-except
 ]
-ignore = ["S603", "S607", "S310"]  # subprocess with variable / partial path, urlopen with https-only URL
+ignore = ["S603", "S607"]  # subprocess with variable / partial path
 
 [tool.ruff.lint.isort]
 known-first-party = ["flyexit"]
