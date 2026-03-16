@@ -175,6 +175,20 @@ Design principle: **UI-only app layer + enum-based session orchestration + thin 
 
 ---
 
+## Tech stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | Python 3.14 |
+| TUI framework | [Textual](https://github.com/Textualize/textual) |
+| Cloud runtime | [Fly.io](https://fly.io) (ephemeral machines) |
+| VPN mesh | [Tailscale](https://tailscale.com) (WireGuard-based) |
+| Package manager | [uv](https://docs.astral.sh/uv/) |
+| Build backend | [Hatchling](https://hatch.pypa.io/) |
+| Linter | [Ruff](https://docs.astral.sh/ruff/) |
+
+---
+
 ## Uninstall
 
 ```bash
