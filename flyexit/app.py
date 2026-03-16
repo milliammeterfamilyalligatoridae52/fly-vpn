@@ -57,6 +57,7 @@ class FlyVPNApp(App[None]):
         self._cfg = config.load()
         self._auth_key: str = os.environ.get("TAILSCALE_AUTHKEY", "")
         self._session = VPNSession()
+        self._busy = False
 
         atexit.register(self._session.emergency_cleanup)
 
@@ -132,9 +133,12 @@ class FlyVPNApp(App[None]):
         self._do_stop()
 
     def _do_launch(self) -> None:
+        if self._busy:
+            return
         if self._session.is_active:
             self._log("[dim]Already running[/]")
             return
+        self._busy = True
         self._run_launch()
 
     @work(thread=True)
@@ -190,6 +194,7 @@ class FlyVPNApp(App[None]):
         self._log_teardown(app_d, ok, from_thread=True)
         self.call_from_thread(self._set_buttons, launching=False)
         self.call_from_thread(self._set_status, "Ready")
+        self._busy = False
 
     def _show_connect_result(self, region: str) -> None:
         """Wait for Tailscale exit node and display the outcome."""
@@ -243,7 +248,10 @@ class FlyVPNApp(App[None]):
             )
 
     def _do_stop(self) -> None:
+        if self._busy:
+            return
         if self._session.is_active:
+            self._busy = True
             self._log("[bold yellow]⏹  Stopping node…[/]")
             self._run_stop()
         else:
@@ -257,6 +265,7 @@ class FlyVPNApp(App[None]):
         self._log_teardown(app_name, ok, from_thread=True)
         self.call_from_thread(self._set_buttons, launching=False)
         self.call_from_thread(self._set_status, "Ready")
+        self._busy = False
 
     def _teardown_with_log(self) -> None:
         """Synchronous teardown used by action_quit."""
