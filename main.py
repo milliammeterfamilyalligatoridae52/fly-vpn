@@ -19,5 +19,6 @@ def main() -> None:
     app = FlyVPNApp()
     app.run()
 
+
 if __name__ == "__main__":
     main()

@@ -29,7 +29,8 @@ def run_watchdog() -> None:
         sys.exit(0)
 
     log.warning(
-        "App '%s' found! Cleaning up to prevent charges…", app_name,
+        "App '%s' found! Cleaning up to prevent charges…",
+        app_name,
     )
 
     killed = kill_all_machines(app_name)

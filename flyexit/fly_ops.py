@@ -107,7 +107,7 @@ def kill_all_machines(app_name: str) -> int:
 
     try:
         machines = json.loads(ls.stdout)
-    except (json.JSONDecodeError, TypeError):
+    except (json.JSONDecodeError, TypeError):  # fmt: skip
         return 0
 
     killed = 0
@@ -140,8 +140,7 @@ def check_auth() -> tuple[AuthStatus, str]:
     if result.returncode != 0:
         return (
             AuthStatus.NOT_AUTHENTICATED,
-            "Fly.io not authenticated!"
-            " Run 'fly auth login' first.",
+            "Fly.io not authenticated! Run 'fly auth login' first.",
         )
     return AuthStatus.OK, result.stdout.strip()
 

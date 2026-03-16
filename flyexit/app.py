@@ -145,22 +145,13 @@ class FlyVPNApp(App[None]):
 
         pf = self._session.preflight(app_name, org)
         if pf.username:
-            self.call_from_thread(
-                self._log, f"[dim]Authenticated as {pf.username}[/]"
-            )
+            self.call_from_thread(self._log, f"[dim]Authenticated as {pf.username}[/]")
         if pf.status is not PreflightStatus.OK:
-            self.call_from_thread(
-                self._log, f"[bold red]⚠  {pf.error}[/]"
-            )
+            self.call_from_thread(self._log, f"[bold red]⚠  {pf.error}[/]")
             return
 
-        verb = (
-            "found" if pf.app_status is AppStatus.FOUND
-            else "created ✅"
-        )
-        self.call_from_thread(
-            self._log, f"[dim]App [bold]{app_name}[/bold] {verb}[/]"
-        )
+        verb = "found" if pf.app_status is AppStatus.FOUND else "created ✅"
+        self.call_from_thread(self._log, f"[dim]App [bold]{app_name}[/bold] {verb}[/]")
 
         region = self.query_one("#region-select", Select).value
         if region is Select.BLANK:
@@ -173,8 +164,7 @@ class FlyVPNApp(App[None]):
         self.call_from_thread(self._set_status, f"🔄 Launching in {region}…")
         self.call_from_thread(
             self._log,
-            f"\n[bold cyan]>>> Launching exit node in"
-            f" [yellow]{region}[/yellow]…[/]",
+            f"\n[bold cyan]>>> Launching exit node in [yellow]{region}[/yellow]…[/]",
         )
 
         result = self._session.launch(
@@ -189,17 +179,13 @@ class FlyVPNApp(App[None]):
                 self._log,
                 "[bold green]✅ Node launched successfully![/]",
             )
-            self.call_from_thread(
-                self._set_status, f"✅ Running in {region}"
-            )
+            self.call_from_thread(self._set_status, f"✅ Running in {region}")
             self._show_connect_result(region)
             return
 
         self._log_launch_error(result)
 
-        self.call_from_thread(
-            self._log, "[dim]🧹 Cleaning up remote resources…[/]"
-        )
+        self.call_from_thread(self._log, "[dim]🧹 Cleaning up remote resources…[/]")
         app_d, ok = self._session.teardown()
         self._log_teardown(app_d, ok, from_thread=True)
         self.call_from_thread(self._set_buttons, launching=False)
@@ -267,9 +253,7 @@ class FlyVPNApp(App[None]):
     def _run_stop(self) -> None:
         """Teardown session in a background thread."""
         app_name, ok = self._session.teardown()
-        self.call_from_thread(
-            self._log, "[dim]🔌 Disconnected from exit node[/]"
-        )
+        self.call_from_thread(self._log, "[dim]🔌 Disconnected from exit node[/]")
         self._log_teardown(app_name, ok, from_thread=True)
         self.call_from_thread(self._set_buttons, launching=False)
         self.call_from_thread(self._set_status, "Ready")
@@ -288,9 +272,7 @@ class FlyVPNApp(App[None]):
                 "Install → curl -L https://fly.io/install.sh | sh",
             )
         elif result.status is LaunchStatus.ERROR:
-            self.call_from_thread(
-                self._log, f"[bold red]❌ Error: {result.error}[/]"
-            )
+            self.call_from_thread(self._log, f"[bold red]❌ Error: {result.error}[/]")
         else:  # LaunchStatus.PROCESS_FAILED
             self.call_from_thread(
                 self._log,
@@ -306,8 +288,7 @@ class FlyVPNApp(App[None]):
         if not app_name:
             return
         msg = (
-            f"[bold green]🗑  App [bold]{app_name}[/bold]"
-            " deleted (no charges)[/]"
+            f"[bold green]🗑  App [bold]{app_name}[/bold] deleted (no charges)[/]"
             if ok
             else f"[yellow]⚠  Could not delete app {app_name}[/]"
         )

@@ -113,7 +113,9 @@ class VPNSession:
         return self.process is not None or self.app_name is not None
 
     def preflight(
-        self, app_name: str, org: str,
+        self,
+        app_name: str,
+        org: str,
     ) -> PreflightResult:
         """Verify Fly auth and ensure the Fly app exists."""
         auth_status, info = check_auth()
@@ -157,7 +159,10 @@ class VPNSession:
 
         try:
             cmd = build_fly_cmd(
-                app_name, region, auth_key, TS_EXIT_HOSTNAME,
+                app_name,
+                region,
+                auth_key,
+                TS_EXIT_HOSTNAME,
             )
             self.process = subprocess.Popen(
                 cmd,
