@@ -16,6 +16,10 @@ No always-on VM. No manual ACL editing. No auth key management. No billing anxie
 
 Under the hood: WireGuard-powered [Tailscale](https://tailscale.com) mesh + [Fly Machines](https://fly.io/docs/machines/) that cold-start in ~3 seconds and bill per-second. A typical session costs **a fraction of a cent**.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Fly VPN demo" width="700"/>
+</p>
+
 ---
 
 ## Use cases
