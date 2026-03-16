@@ -426,8 +426,13 @@ bash install.sh uninstall
 - [ ] **Drop `flyctl` dependency** — replace all CLI calls with the [Fly.io Machines API](https://fly.io/docs/machines/api/) directly, removing the only heavy external binary requirement
 - [ ] **Windows support** — make installer, Tailscale integration, and routing work on Windows (PowerShell installer, Windows-native `tailscale.exe` path detection)
 - [ ] **Linux app package** — `.deb` / `.rpm` / AUR package for one-line install on Linux
-- [ ] **Session history & cost tracking** — persist session logs (region, duration, estimated cost) to a local SQLite DB and show a history screen in the TUI
+- [ ] **History screen in TUI** — a dedicated tab showing past sessions with region, duration, and cost (already implemented via `--stats`)
 - [ ] **Multiple simultaneous nodes** — spin up nodes in several regions at once and switch between them without teardown
+- [ ] **Auto-rotate on region failure** — if the chosen region has no capacity, automatically retry the next closest region instead of failing
+- [ ] **Connection latency indicator** — show live ping to the exit node in the status bar so you can pick the fastest region
+- [ ] **Long-session billing alert** — warn in the TUI after a configurable threshold (e.g. 2 h) to prevent accidental charges from a forgotten session
+- [ ] **macOS menu bar widget** — a tiny status icon that shows VPN on/off state and lets you stop the session without opening the full TUI
+- [ ] **Homebrew tap** — `brew install invilso/tap/fly-vpn` for a one-liner install without cloning the repo
 - [ ] **Custom machine size picker** — let the user choose Fly Machine CPU/RAM tier (e.g. `shared-cpu-1x` vs `performance-2x`) from the TUI
 - [ ] **Config profiles** — save named profiles (preferred region, machine size, etc.) and switch between them quickly
 
