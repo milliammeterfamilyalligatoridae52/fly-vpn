@@ -108,9 +108,7 @@ class FlyVPNApp(App[None]):
                     )
                     yield Select(
                         [(label, mb) for mb, label in VM_MEMORY_OPTIONS],
-                        value=self._cfg.get(
-                            "vm_memory", DEFAULT_VM_MEMORY
-                        ),
+                        value=self._cfg.get("vm_memory", DEFAULT_VM_MEMORY),
                         id="memory-select",
                     )
                     with Horizontal(id="button-row"):

@@ -30,6 +30,7 @@ def cost_per_sec(memory_mb: int = 256) -> float:
     """Per-second cost for shared-cpu-1x with *memory_mb* MB RAM."""
     return _CPU_PER_SEC + _RAM_PER_GB_PER_SEC * (memory_mb / 1024)
 
+
 DB_PATH: Final[Path] = Path.home() / ".fly_vpn_usage.db"
 
 
@@ -81,8 +82,7 @@ def log_start(region: str, memory_mb: int = 256) -> int:
     """Record session start.  Returns the session row ID."""
     conn = _connect()
     cur = conn.execute(
-        "INSERT INTO sessions (started_at, region, memory_mb)"
-        " VALUES (?, ?, ?)",
+        "INSERT INTO sessions (started_at, region, memory_mb) VALUES (?, ?, ?)",
         (time.time(), region, memory_mb),
     )
     conn.commit()

@@ -137,9 +137,7 @@ class VPNSession:
         """True when a machine is launching or running."""
         return self.process is not None or self.app_name is not None
 
-    def _start_usage_log(
-        self, region: str, memory_mb: int = 256
-    ) -> None:
+    def _start_usage_log(self, region: str, memory_mb: int = 256) -> None:
         """Record session start in the usage database."""
         try:
             from flyexit.usage_db import log_start
