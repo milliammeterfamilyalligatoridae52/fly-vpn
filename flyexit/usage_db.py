@@ -1,12 +1,13 @@
 """Session usage log — SQLite cost tracker.
 
-Every VPN session is recorded with start / end timestamps and region.
-Cost is derived from Fly.io per-second pricing for the default
-shared-cpu-1x + 256 MB machine spec.
+Every VPN session is recorded with start / end timestamps, region,
+and VM memory size.  Cost is derived from Fly.io per-second pricing
+for the shared-cpu-1x machine spec.
 """
 
 from __future__ import annotations
 
+import contextlib
 import sqlite3
 import time
 from dataclasses import dataclass
@@ -14,10 +15,20 @@ from datetime import UTC
 from pathlib import Path
 from typing import Final
 
-# Fly.io shared-cpu-1x + 256 MB RAM — per-second cost (USD).
-# $1.94/mo CPU + $0.59/mo RAM = $2.53/mo ÷ 2 592 000 s ≈ $9.76e-7/s
+# Fly.io shared-cpu-1x pricing — per-second (USD).
+# CPU: $1.94/mo, RAM: $2.36/mo per GB.
 # Source: https://fly.io/docs/about/pricing/
-COST_PER_SEC: Final[float] = 2.53 / (30 * 24 * 3600)
+_SECS_PER_MONTH: Final[int] = 30 * 24 * 3600
+_CPU_PER_SEC: Final[float] = 1.94 / _SECS_PER_MONTH
+_RAM_PER_GB_PER_SEC: Final[float] = 2.36 / _SECS_PER_MONTH
+
+# Default for legacy rows that have no memory_mb column.
+COST_PER_SEC: Final[float] = _CPU_PER_SEC + _RAM_PER_GB_PER_SEC * 0.256
+
+
+def cost_per_sec(memory_mb: int = 256) -> float:
+    """Per-second cost for shared-cpu-1x with *memory_mb* MB RAM."""
+    return _CPU_PER_SEC + _RAM_PER_GB_PER_SEC * (memory_mb / 1024)
 
 DB_PATH: Final[Path] = Path.home() / ".fly_vpn_usage.db"
 
@@ -54,20 +65,25 @@ def _connect() -> sqlite3.Connection:
             ended_at    REAL,
             region      TEXT    NOT NULL,
             duration_s  INTEGER,
-            cost_usd    REAL
+            cost_usd    REAL,
+            memory_mb   INTEGER
         )
         """,
     )
+    # Migrate older databases that lack the column.
+    with contextlib.suppress(sqlite3.OperationalError):
+        conn.execute("ALTER TABLE sessions ADD COLUMN memory_mb INTEGER")
     conn.commit()
     return conn
 
 
-def log_start(region: str) -> int:
+def log_start(region: str, memory_mb: int = 256) -> int:
     """Record session start.  Returns the session row ID."""
     conn = _connect()
     cur = conn.execute(
-        "INSERT INTO sessions (started_at, region) VALUES (?, ?)",
-        (time.time(), region),
+        "INSERT INTO sessions (started_at, region, memory_mb)"
+        " VALUES (?, ?, ?)",
+        (time.time(), region, memory_mb),
     )
     conn.commit()
     row_id = cur.lastrowid
@@ -80,14 +96,15 @@ def log_end(session_id: int) -> tuple[int, float]:
     now = time.time()
     conn = _connect()
     row = conn.execute(
-        "SELECT started_at FROM sessions WHERE id = ?",
+        "SELECT started_at, memory_mb FROM sessions WHERE id = ?",
         (session_id,),
     ).fetchone()
     if not row:
         conn.close()
         return 0, 0.0
     duration = int(now - row[0])
-    cost = duration * COST_PER_SEC
+    mem = row[1] if row[1] else 256
+    cost = duration * cost_per_sec(mem)
     conn.execute(
         "UPDATE sessions SET ended_at=?, duration_s=?, cost_usd=? WHERE id=?",
         (now, duration, cost, session_id),
@@ -158,14 +175,15 @@ def get_live_cost(session_id: int) -> tuple[int, float]:
     """Current duration and cost of a *running* session (not yet ended)."""
     conn = _connect()
     row = conn.execute(
-        "SELECT started_at FROM sessions WHERE id = ?",
+        "SELECT started_at, memory_mb FROM sessions WHERE id = ?",
         (session_id,),
     ).fetchone()
     conn.close()
     if not row:
         return 0, 0.0
     duration = int(time.time() - row[0])
-    return duration, duration * COST_PER_SEC
+    mem = row[1] if row[1] else 256
+    return duration, duration * cost_per_sec(mem)
 
 
 def format_duration(seconds: int) -> str:

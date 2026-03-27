@@ -196,6 +196,7 @@ def build_fly_cmd(
     hostname: str,
     *,
     login_server: str = "",
+    vm_memory: int = 512,
 ) -> list[str]:
     """Build the ``fly m run`` command for launching an exit node."""
     extra_args = "--advertise-exit-node --advertise-tags=tag:ephemeral-vpn"
@@ -211,6 +212,8 @@ def build_fly_cmd(
         app_name,
         "--region",
         region,
+        "--vm-memory",
+        f"{vm_memory}mb",
         "--name",
         "ephemeral-exit-node",
         "-e",

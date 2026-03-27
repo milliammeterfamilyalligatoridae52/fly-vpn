@@ -8,6 +8,15 @@ from typing import Final
 DEFAULT_REGION: Final = "ams"
 DEFAULT_APP_NAME: Final = "fly-vpn-node"
 DEFAULT_ORG: Final = "personal"
+DEFAULT_VM_MEMORY: Final = 512  # MB
+
+# Choices for the memory selector (MB → label).
+VM_MEMORY_OPTIONS: Final[list[tuple[int, str]]] = [
+    (256, "256 MB"),
+    (512, "512 MB"),
+    (1024, "1 GB"),
+    (2048, "2 GB"),
+]
 
 # Fly CLI environment — suppress update prompts.
 FLY_ENV: Final[dict[str, str]] = {**os.environ, "FLY_NO_UPDATE_CHECK": "1"}

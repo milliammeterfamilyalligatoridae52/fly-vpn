@@ -32,8 +32,10 @@ from flyexit import config
 from flyexit.constants import (
     DEFAULT_APP_NAME,
     DEFAULT_ORG,
+    DEFAULT_VM_MEMORY,
     FLY_REGIONS,
     TS_EXIT_HOSTNAME,
+    VM_MEMORY_OPTIONS,
 )
 from flyexit.session import (
     ConnectStatus,
@@ -103,6 +105,13 @@ class FlyVPNApp(App[None]):
                         [(f"{flag}  {code}", code) for code, flag in FLY_REGIONS],
                         value=self._cfg.get("region", "ams"),
                         id="region-select",
+                    )
+                    yield Select(
+                        [(label, mb) for mb, label in VM_MEMORY_OPTIONS],
+                        value=self._cfg.get(
+                            "vm_memory", DEFAULT_VM_MEMORY
+                        ),
+                        id="memory-select",
                     )
                     with Horizontal(id="button-row"):
                         yield Button(
@@ -301,19 +310,32 @@ class FlyVPNApp(App[None]):
                 region = self._cfg.get("region", "ams")
             region = str(region)
             self._cfg["region"] = region
+
+            mem_val = self.query_one("#memory-select", Select).value
+            vm_memory = (
+                int(mem_val)
+                if mem_val is not Select.BLANK
+                else self._cfg.get("vm_memory", DEFAULT_VM_MEMORY)
+            )
+            self._cfg["vm_memory"] = vm_memory
             config.save(self._cfg)
 
             self.call_from_thread(self._set_buttons, launching=True)
-            self.call_from_thread(self._set_status, f"🔄 Launching in {region}…")
+            self.call_from_thread(
+                self._set_status,
+                f"🔄 Launching in {region} ({vm_memory} MB)…",
+            )
             self.call_from_thread(
                 self._log,
                 f"\n[bold cyan]>>> Launching exit node in"
-                f" [yellow]{region}[/yellow]…[/]",
+                f" [yellow]{region}[/yellow]"
+                f" ({vm_memory} MB)…[/]",
             )
 
             result = self._session.launch(
                 app_name,
                 region,
+                vm_memory=vm_memory,
                 on_output=lambda line: self.call_from_thread(self._log, line),
             )
 

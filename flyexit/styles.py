@@ -74,6 +74,11 @@ Sparkline > .sparkline--min-color {
     width: 40;
 }
 
+#memory-select {
+    width: 40;
+    margin-top: 1;
+}
+
 #button-row {
     height: auto;
     margin-top: 1;

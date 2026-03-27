@@ -137,12 +137,14 @@ class VPNSession:
         """True when a machine is launching or running."""
         return self.process is not None or self.app_name is not None
 
-    def _start_usage_log(self, region: str) -> None:
+    def _start_usage_log(
+        self, region: str, memory_mb: int = 256
+    ) -> None:
         """Record session start in the usage database."""
         try:
             from flyexit.usage_db import log_start
 
-            self._db_session_id = log_start(region)
+            self._db_session_id = log_start(region, memory_mb)
         except Exception:  # noqa: BLE001, S110
             pass
 
@@ -199,6 +201,7 @@ class VPNSession:
         app_name: str,
         region: str,
         *,
+        vm_memory: int = 512,
         on_output: Callable[[str], None] | None = None,
     ) -> LaunchResult:
         """Spawn a Fly machine and stream its stdout.
@@ -237,6 +240,7 @@ class VPNSession:
                 auth_key,
                 TS_EXIT_HOSTNAME,
                 login_server=self._ts_login_server,
+                vm_memory=vm_memory,
             )
             self.process = subprocess.Popen(
                 cmd,
@@ -260,7 +264,7 @@ class VPNSession:
             self.process = None
 
             if code == 0:
-                self._start_usage_log(region)
+                self._start_usage_log(region, vm_memory)
                 return LaunchResult(status=LaunchStatus.OK)
 
             full_output = "\n".join(output_lines)

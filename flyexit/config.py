@@ -6,7 +6,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from flyexit.constants import DEFAULT_APP_NAME, DEFAULT_ORG, DEFAULT_REGION
+from flyexit.constants import (
+    DEFAULT_APP_NAME,
+    DEFAULT_ORG,
+    DEFAULT_REGION,
+    DEFAULT_VM_MEMORY,
+)
 
 CONFIG_PATH: Path = Path.home() / ".fly_vpn_config.json"
 
@@ -14,6 +19,7 @@ _DEFAULTS: dict[str, Any] = {
     "region": DEFAULT_REGION,
     "app_name": DEFAULT_APP_NAME,
     "org": DEFAULT_ORG,
+    "vm_memory": DEFAULT_VM_MEMORY,
 }
 
 
